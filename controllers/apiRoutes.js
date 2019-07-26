@@ -6,13 +6,16 @@ const { keys } = require('../config/secrets');
 const databaseUtils = require('./Util/databaseUtils');
 const slackapi = require('./Util/slackapi-int');
 
+
+//TODO: object decontruction
 const insertMessage = databaseUtils.insertMessage
     , getDistinctTags = databaseUtils.getDistinctTags
     , getMessageTSbyTag = databaseUtils.getMessageTSbyTag
     , getLatestMessageForTicket = databaseUtils.getLatestMessageForTicket
     , retrieveThreadsFromSlackAPI = slackapi.retrieveThreadsFromSlackAPI
     , retrieveUsernameFromUserID = slackapi.retrieveUsernameFromUserID
-    , postMessageToThread = slackapi.postMessageToThread;
+    , postMessageToThread = slackapi.postMessageToThread
+    , getUserbyId = databaseUtils.getUserbyId;
 
 apiRouter.get('/tags', getTags);
 apiRouter.post('/events', saveEvents);
@@ -231,6 +234,19 @@ function postToThread(req, res) {
         console.error(err);
         throw err;
     });
+}
+
+console.log("getting user")
+getUserFromDB("U1K8Z9AFX");
+
+function getUserFromDB(id){
+    getUserbyId(id).then(data=>{
+        console.log(data);
+        if(data){
+            // return
+        }
+    })
+
 }
 
 module.exports = apiRouter;

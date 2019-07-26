@@ -53,6 +53,7 @@ db.sequelize.sync(syncOptions).then(function () {
             createdAt:"2019-06-07 14:32:04"
         }];
         db.Message.bulkCreate(data)
+        db.User
     }
     app.listen(PORT, function () {
         console.log(

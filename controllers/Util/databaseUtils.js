@@ -45,9 +45,18 @@ function getMessageTSbyTag(tags){
     })
 }
 
+function getUserbyId(id){
+    return db.User.findAll({ 
+        where: { 
+            user_id: id
+        },
+    })
+}
+
 module.exports={
     insertMessage : insertMessage,
     getDistinctTags : getDistinctTags,
     getMessageTSbyTag : getMessageTSbyTag,
-    getLatestMessageForTicket: getLatestMessageForTicket
+    getLatestMessageForTicket: getLatestMessageForTicket,
+    getUserbyId:  getUserbyId
 }
