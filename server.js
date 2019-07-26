@@ -49,7 +49,7 @@ db.sequelize.sync(syncOptions).then(function () {
             tags: "$MAM",
             ticket_no: 1521981,
             user:"U1K8Z9AFP",
-            message_preview: "$MAM - 1521981 -  “App file type for OSX fails to deploy on devices post adding version” Zscaler 1.4 App currently deployed to devices adding a version 1.5 and deploying does not take affect and lets 1.4 stay on the device. Same apps when tested internally works fine, Customer re-enrolled a device and got 1.5 straight. Collected Bulk processing, Change event queue and Ds logs while pushing the 1.5 App and could not identify relevant errors. Please suggest!",
+            message_preview: "$MAM - 1521982 -  “App file type for OSX fails to deploy on devices post adding version” Zscaler 1.4 App currently deployed to devices adding a version 1.5 and deploying does not take affect and lets 1.4 stay on the device. Same apps when tested internally works fine, Customer re-enrolled a device and got 1.5 straight. Collected Bulk processing, Change event queue and Ds logs while pushing the 1.5 App and could not identify relevant errors. Please suggest!",
             createdAt:"2019-06-07 14:32:04"
         }];
         db.Message.bulkCreate(data)

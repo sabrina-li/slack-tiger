@@ -39,7 +39,7 @@ function getMessageTSbyTag(tags){
             tags: { [Op.or]: tags },
             createdAt: {
                 [Op.lt]: new Date(),
-                [Op.gt]: new Date(new Date() - 30 * 24 * 60 * 60 * 1000)
+                // [Op.gt]: new Date(new Date() - 30 * 24 * 60 * 60 * 1000)
                 }
         },
     })
