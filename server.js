@@ -8,11 +8,10 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 
-const apiRouter = require("./controller/apiRoutes");
-const htmlRouter = require("./controller/htmlRoutes");
+const apiRouter = require("./controllers/apiRoutes");
+// const htmlRouter = require("./controllers/htmlRoutes");
 var db = require("./models");
 //const routes = require("./routes");
-
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -35,7 +34,6 @@ if (process.env.NODE_ENV === "test") {
     syncOptions.force = true;
     syncOptions.match = /_development$/;
 }
-console.log(process.env.NODE_ENV)
 
 // Starting the server, syncing our models ------------------------------------/
 db.sequelize.sync(syncOptions).then(function () {
