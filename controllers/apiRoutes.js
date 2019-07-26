@@ -126,38 +126,43 @@ function getMessagesForTicket(req, res) {
     }
     getLatestMessageForTicket(req.params.ticketID)
         .then(data => {
-            message_ts = data.message_ts;
-            const retrieveNextThread = (message_ts) => {
-                retrieveThreadsFromSlackAPI(message_ts).then(thread => {
-                    if(thread && thread[0].attachments && process.env.NODE_ENV === "production"){
-                        thread[0].text = thread[0].attachments[0].text;
-                        thread[0].thread_link = "https://vmware.slack.com/archives/" + keys.channel + "/p" + thread[0].ts;
-                    }
-                    allThreads.push(thread);
-                    let postPrefixSplit = [];
-                    //PROD if the first reply is from the bot user                    
-                    if (thread && thread[1] && !process.env.NODE_ENV || (process.env.NODE_ENV === "production" && thread[1].bot_id === "B60JCMYBD")) {//first reply
-                        let thread_ts;
-                        if (thread.length > 1) {
-                            prefixes.forEach(prefix=>{
-                                if(postPrefixSplit.length<=1){
-                                    postPrefixSplit = thread[1].text.split(prefix);
-                                }
-                            })
-                            console.log(postPrefixSplit)
-                            if (postPrefixSplit.length > 1) {
-                                thread_ts = postPrefixSplit[1].split(after)[0];
-                                thread_ts = thread_ts.substring(0, thread_ts.length - 6) + "." + thread_ts.substring(thread_ts.length - 6, thread_ts.length);
-                                if (thread_ts) { retrieveNextThread(thread_ts) }
-                                else { sendRes(res); }
+            if(data){
+                message_ts = data.message_ts;
+                const retrieveNextThread = (message_ts) => {
+                    retrieveThreadsFromSlackAPI(message_ts).then(thread => {
+                        if(thread && thread[0].attachments && process.env.NODE_ENV === "production"){
+                            thread[0].text = thread[0].attachments[0].text;
+                            thread[0].thread_link = "https://vmware.slack.com/archives/" + keys.channel + "/p" + thread[0].ts;
+                        }
+                        allThreads.push(thread);
+                        let postPrefixSplit = [];
+                        //PROD if the first reply is from the bot user                    
+                        if (thread && thread[1] && !process.env.NODE_ENV || (process.env.NODE_ENV === "production" && thread[1].bot_id === "B60JCMYBD")) {//first reply
+                            let thread_ts;
+                            if (thread.length > 1) {
+                                prefixes.forEach(prefix=>{
+                                    if(postPrefixSplit.length<=1){
+                                        postPrefixSplit = thread[1].text.split(prefix);
+                                    }
+                                })
+                                console.log(postPrefixSplit)
+                                if (postPrefixSplit.length > 1) {
+                                    thread_ts = postPrefixSplit[1].split(after)[0];
+                                    thread_ts = thread_ts.substring(0, thread_ts.length - 6) + "." + thread_ts.substring(thread_ts.length - 6, thread_ts.length);
+                                    if (thread_ts) { retrieveNextThread(thread_ts) }
+                                    else { sendRes(res); }
+                                } else { sendRes(res); }
                             } else { sendRes(res); }
-                        } else { sendRes(res); }
-                    } else {
-                        sendRes(res);
-                    }
-                });
+                        } else {
+                            sendRes(res);
+                        }
+                    });
+                }
+                retrieveNextThread(message_ts);
+            }else{
+                sendRes(res)
             }
-            retrieveNextThread(message_ts);
+            
         })
     //     Promise.all(queue).then(messages => {
     //         if (messages) {

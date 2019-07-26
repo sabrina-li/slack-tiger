@@ -59,6 +59,7 @@ class App extends React.Component {
             viewTicket: true
           })
         } else {
+          alert("ticket not found in our DB... Please confirm the ticket is correct! If it is our fault, we will improve this soon!")
           this.setState({
             messageCards: null,
             viewTicket: true
