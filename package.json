@@ -17,7 +17,7 @@
   "license": "ISC",
   "devDependencies": {
     "concurrently": "^4.1.0",
-    "nodemon": "^1.18.7"
+    "nodemon": "^1.19.1"
   },
   "dependencies": {
     "axios": "^0.18.0",
@@ -27,7 +27,6 @@
     "dotenv": "^7.0.0",
     "express": "^4.16.4",
     "mysql2": "^1.6.5",
-    "nodemon": "^1.19.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-scripts": "3.0.1",

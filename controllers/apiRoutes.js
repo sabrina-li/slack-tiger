@@ -24,6 +24,9 @@ apiRouter.get('/ticket/:ticketID', getMessagesForTicket);
 apiRouter.post('/reply', postToThread);
 
 
+
+// used for event listener, to save incoming events to DB
+// POST /events
 function saveEvents(req, res) {
     const data = req.body;
     let tags = [], repost = [], rawtags, thread_ts;
@@ -68,7 +71,8 @@ function saveEvents(req, res) {
 
 }
 
-
+//GET tags from db distinct tags only
+// GET /tags
 function getTags(req, res) {
     const result = [];
     getDistinctTags().then(tags => {
@@ -87,11 +91,12 @@ function getTags(req, res) {
 
 //TEST
 // getTopPosts({query:"test"});
-
+// get most recent 10 posts from DB based on message ts
+// GET /posts
 function getTopPosts(req, res) {
     let queue = [];
     let threads = [];
-    //Get all messages based on the tags provided
+    //Get all messages based on the tags provided from DB
     getMessageTSbyTag(req.query.tags.split(","), req.query.from)
         .then(dbresult => {
             const threads = Array.from(dbresult).sort((a, b) => { return b - a });
@@ -113,7 +118,10 @@ function getTopPosts(req, res) {
 
 }
 
+// GET all messages from one ticket
+// GET /ticket/1521070
 function getMessagesForTicket(req, res) {
+    //prefixes to recognize if this is post by  bot to find before or after messages
     const prefixes = ["This is a Follow-Up for: <https://vmware.slack.com/archives/" + keys.channel + "/p",
                     ,"This is a Repost for: <https://vmware.slack.com/archives/"+ keys.channel + "/p"]
     const after = "> which was posted";
@@ -127,67 +135,69 @@ function getMessagesForTicket(req, res) {
         })
         res.json(allThreads);
     }
+    const retrieveNextThread = (message_ts) => {
+        retrieveThreadsFromSlackAPI(message_ts).then(thread => {
+            //thread is the entire thread(all replies) for this message_ts
+            if(thread && thread[0].attachments && process.env.NODE_ENV === "production"){
+                thread[0].text = thread[0].attachments[0].text;
+                thread[0].thread_link = "https://vmware.slack.com/archives/" + keys.channel + "/p" + thread[0].ts;
+            }
+            console.log("thread!",thread);
+
+            allThreads.push(thread);//allThreads contain all the posts/threads posted for this ticket
+            let postPrefixSplit = [];
+            //PROD if the first reply is from the bot user                    
+            if (thread && thread[1] && !process.env.NODE_ENV || (process.env.NODE_ENV === "production" && thread[1].bot_id === "B60JCMYBD")) {//first reply
+                let next_thread_ts;
+                if (thread.length > 1) {
+                    //find and split each bot message to get all threads in the chain
+                    prefixes.forEach(prefix=>{
+                        if(postPrefixSplit.length<=1){
+                            postPrefixSplit = thread[1].text.split(prefix);
+                        }
+                    })
+                    if (postPrefixSplit.length > 1) {
+                        next_thread_ts = postPrefixSplit[1].split(after)[0];
+                        next_thread_ts = next_thread_ts.substring(0, thread_ts.length - 6) + "." + thread_ts.substring(thread_ts.length - 6, thread_ts.length);
+                        if (next_thread_ts) { retrieveNextThread(next_thread_ts) }
+                        else { sendRes(res); }
+                    } else { sendRes(res); }
+                } else { sendRes(res); }
+            } else {
+                sendRes(res);
+            }
+        });
+    }
     getLatestMessageForTicket(req.params.ticketID)
         .then(data => {
             if(data){
                 message_ts = data.message_ts;
-                const retrieveNextThread = (message_ts) => {
-                    retrieveThreadsFromSlackAPI(message_ts).then(thread => {
-                        if(thread && thread[0].attachments && process.env.NODE_ENV === "production"){
-                            thread[0].text = thread[0].attachments[0].text;
-                            thread[0].thread_link = "https://vmware.slack.com/archives/" + keys.channel + "/p" + thread[0].ts;
-                        }
-                        allThreads.push(thread);
-                        let postPrefixSplit = [];
-                        //PROD if the first reply is from the bot user                    
-                        if (thread && thread[1] && !process.env.NODE_ENV || (process.env.NODE_ENV === "production" && thread[1].bot_id === "B60JCMYBD")) {//first reply
-                            let thread_ts;
-                            if (thread.length > 1) {
-                                prefixes.forEach(prefix=>{
-                                    if(postPrefixSplit.length<=1){
-                                        postPrefixSplit = thread[1].text.split(prefix);
-                                    }
-                                })
-                                console.log(postPrefixSplit)
-                                if (postPrefixSplit.length > 1) {
-                                    thread_ts = postPrefixSplit[1].split(after)[0];
-                                    thread_ts = thread_ts.substring(0, thread_ts.length - 6) + "." + thread_ts.substring(thread_ts.length - 6, thread_ts.length);
-                                    if (thread_ts) { retrieveNextThread(thread_ts) }
-                                    else { sendRes(res); }
-                                } else { sendRes(res); }
-                            } else { sendRes(res); }
-                        } else {
-                            sendRes(res);
-                        }
-                    });
-                }
                 retrieveNextThread(message_ts);
             }else{
                 sendRes(res)
             }
-            
         })
-    //     Promise.all(queue).then(messages => {
-    //         if (messages) {
-    //             messages.forEach(message => {
-    //                 if (message) {
-    //                     let thread = [];
-    //                     message.forEach(reply => {
-    //                             //TODO: parse
-    //                             text = reply.attachments && reply.attachments[0].footer=="TigerBot" ? reply.text + '\n' + reply.attachments[0].text : reply.text;
-    //                             thread.push({
-    //                                 ts: reply.ts,
-    //                                 text: text,
-    //                                 user: reply.user,
-    //                                 reactions:reply.reactions
-    //                             });
-    //                         })
-    //                         threads.push(thread);
-    //                     }
-    //                 });
-    //             }
+        // Promise.all(queue).then(messages => {
+        //     if (messages) {
+        //         messages.forEach(message => {
+        //             if (message) {
+        //                 let thread = [];
+        //                 message.forEach(reply => {
+        //                         //TODO: parse
+        //                         text = reply.attachments && reply.attachments[0].footer=="TigerBot" ? reply.text + '\n' + reply.attachments[0].text : reply.text;
+        //                         thread.push({
+        //                             ts: reply.ts,
+        //                             text: text,
+        //                             user: reply.user,
+        //                             reactions:reply.reactions
+        //                         });
+        //                     })
+        //                     threads.push(thread);
+        //                 }
+        //             });
+        //         }
 
-    //             getAllUsers(threads).then(threads=>{
+        //         getAllUsers(threads).then(threads=>{
 
 
     // })
@@ -219,8 +229,6 @@ function getAllUsers(threads) {
 
 
 function postToThread(req, res) {
-    console.log("======================");
-    console.log(req.body);
     const message = req.body.message;
     const thread_ts = req.body.thread_ts;
     postMessageToThread(message, thread_ts).then(response => {
@@ -241,7 +249,6 @@ getUserFromDB("U1K8Z9AFX");
 
 function getUserFromDB(id){
     getUserbyId(id).then(data=>{
-        console.log(data);
         if(data){
             // return
         }
