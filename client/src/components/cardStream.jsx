@@ -20,6 +20,8 @@ class CardStream extends React.Component {
       //ticketThreads is array of all threads
       //each thread is an array of message/replies
         const allThreadsTicketCards = this.props.ticketThreads.map(thread=>{
+          console.log("here")
+          console.log(this.props.ticketThreads);
           let reactions = [];//TODO add reactions for each thread
 
           const postText=thread[0];

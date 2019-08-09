@@ -37,12 +37,17 @@ function retrieveThreadsFromSlackAPI(threadTS){
 // });
 function retrieveUsernameFromUserID(userID,message){
     return new Promise((res,rej)=>{
+        let userInfo;
         request(userurl+userID)
             .then(function (result) {
+                // console.log(userurl+userID)
                 result =JSON.parse(result);
-                if(result.error === undefined){
-                    message.userInfo = {real_name:result.user.real_name?result.user.real_name:result.user.profile.real_name,username:result.user.name,userID:userID};
-                }
+                userInfo = {real_name:result.user.real_name?result.user.real_name:result.user.profile.real_name,username:result.user.name,userID:userID};
+                if(result.error === undefined && message){
+                    message.userInfo = userInfo
+                }else(
+                    res(userInfo)
+                )
                 res(message);
                 
             })

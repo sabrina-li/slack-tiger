@@ -104,7 +104,7 @@ function getTopPosts(req, res) {
 
             threads.forEach(thread => {
                 thread.dataValues.thread_link = "https://vmware.slack.com/archives/" + keys.channel + "/p" + thread.message_ts
-                queue.push(retrieveUsernameFromUserID(thread.user, thread.dataValues))
+                queue.push(getOneUser(thread.user, thread.dataValues))
             });
             Promise.all(queue).then(threadWithUser => {
                 res.set({
@@ -125,105 +125,111 @@ function getMessagesForTicket(req, res) {
     const prefixes = ["This is a Follow-Up for: <https://vmware.slack.com/archives/" + keys.channel + "/p",
                     ,"This is a Repost for: <https://vmware.slack.com/archives/"+ keys.channel + "/p"]
     const after = "> which was posted";
-    const allThreads = [];
+    let allThreads = [];
+    //allThreads contain all the posts/threads posted for this ticket
+    
 
-    const sendRes = (res) => {
+    const sendRes = (res,data) => {
+        console.log("++++++++++++++++++++++++++++++++++++++");
+        console.log(data);
         res.set({
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Credentials': 'true',
             'Access-Control-Allow-Methods': 'GET, POST'
         })
-        res.json(allThreads);
+        res.json(data);
     }
-    const retrieveNextThread = (message_ts) => {
-        retrieveThreadsFromSlackAPI(message_ts).then(thread => {
-            //thread is the entire thread(all replies) for this message_ts
-            if(thread && thread[0].attachments && process.env.NODE_ENV === "production"){
-                thread[0].text = thread[0].attachments[0].text;
-                thread[0].thread_link = "https://vmware.slack.com/archives/" + keys.channel + "/p" + thread[0].ts;
-            }
-            console.log("thread!",thread);
 
-            allThreads.push(thread);//allThreads contain all the posts/threads posted for this ticket
-            let postPrefixSplit = [];
-            //PROD if the first reply is from the bot user                    
-            if (thread && thread[1] && !process.env.NODE_ENV || (process.env.NODE_ENV === "production" && thread[1].bot_id === "B60JCMYBD")) {//first reply
+    //getting all info from one thread 
+    const retrieveNextThread = (message_ts) => {
+            retrieveThreadsFromSlackAPI(message_ts).then(thread => {
+                //thread is the entire thread(including all replies) for this message_ts
+                let postPrefixSplit = [];
                 let next_thread_ts;
-                if (thread.length > 1) {
-                    //find and split each bot message to get all threads in the chain
-                    prefixes.forEach(prefix=>{
-                        if(postPrefixSplit.length<=1){
-                            postPrefixSplit = thread[1].text.split(prefix);
-                        }
+                 
+                if(thread){
+                    // the post message contains the thread_ts, creating a link to the slack("open in slack")
+                    if(thread[0].attachments && process.env.NODE_ENV === "production"){
+                        thread[0].text = thread[0].attachments[0].text;
+                        thread[0].thread_link = "https://vmware.slack.com/archives/" + keys.channel + "/p" + thread[0].ts;
+                    }
+                    
+                    //PROD if the first reply is from the bot user    
+                    //have first reply and is from the support bot
+                    if (thread.length > 1 && thread[1] && !process.env.NODE_ENV || (process.env.NODE_ENV === "production" && thread[1].bot_id === "B60JCMYBD")) {
+                            //find and split each bot message to get all threads in the chain
+                            //thread[1] is the first reply in the current thread
+                            prefixes.forEach(prefix=>{
+                                if(postPrefixSplit.length<=1){
+                                    postPrefixSplit = thread[1].text.split(prefix);
+                                }
+                            })
+                            if (postPrefixSplit.length > 1) {
+                                next_thread_ts = postPrefixSplit[1].split(after)[0];
+                                next_thread_ts = next_thread_ts.substring(0, next_thread_ts.length - 6) + "." + next_thread_ts.substring(next_thread_ts.length - 6, next_thread_ts.length);
+                            } 
+                    }
+
+                    
+                    //Get all users for this thread
+                    //for each message/reply getting the user
+                    let repliesQueue = [];
+                    thread.forEach(reply=>{
+                        repliesQueue.push(getOneUser(reply.user,reply));
                     })
-                    if (postPrefixSplit.length > 1) {
-                        next_thread_ts = postPrefixSplit[1].split(after)[0];
-                        next_thread_ts = next_thread_ts.substring(0, thread_ts.length - 6) + "." + thread_ts.substring(thread_ts.length - 6, thread_ts.length);
+                    Promise.all(repliesQueue).then(thread=>{
+                        allThreads.push(thread);
                         if (next_thread_ts) { retrieveNextThread(next_thread_ts) }
-                        else { sendRes(res); }
-                    } else { sendRes(res); }
-                } else { sendRes(res); }
-            } else {
-                sendRes(res);
-            }
-        });
+                        else{sendRes(res,allThreads)}
+                    })
+                }
+            });
     }
+
     getLatestMessageForTicket(req.params.ticketID)
         .then(data => {
             if(data){
                 message_ts = data.message_ts;
                 retrieveNextThread(message_ts);
-            }else{
-                sendRes(res)
             }
         })
-        // Promise.all(queue).then(messages => {
-        //     if (messages) {
-        //         messages.forEach(message => {
-        //             if (message) {
-        //                 let thread = [];
-        //                 message.forEach(reply => {
-        //                         //TODO: parse
-        //                         text = reply.attachments && reply.attachments[0].footer=="TigerBot" ? reply.text + '\n' + reply.attachments[0].text : reply.text;
-        //                         thread.push({
-        //                             ts: reply.ts,
-        //                             text: text,
-        //                             user: reply.user,
-        //                             reactions:reply.reactions
-        //                         });
-        //                     })
-        //                     threads.push(thread);
-        //                 }
-        //             });
-        //         }
-
-        //         getAllUsers(threads).then(threads=>{
-
-
-    // })
-    // })
 }
 
-// /thread/1521981
-function getAllUsers(threads) {
-    return new Promise((res, rej) => {
-        let q = [];
-        threads.forEach((thread, i) => {
-            thread[0].thread_link = "https://vmware.slack.com/archives/" + keys.channel + "/p" + thread[0].ts
-            thread.forEach((post, j) => {
-                if (thread[0].user) {
-                    q.push(retrieveUsernameFromUserID(thread[0].user).then(result => {
-                        thread[0].userInfo = result
-                    }));
-                } else if (thread[0].bot_id) {
-                    //TODO, get bot user info
-                }
-            })
-        })
 
-        Promise.all(q).then(users => {
-            res(threads)
+// getOneUser("U7LPR7DNZ").then(console.log);
+
+// get one user by  ID, first check in DB, if not in DB, get via API then write to DB
+function getOneUser(userID,message) {
+    return new Promise((res, rej) => {
+        // threads.forEach((thread, i) => {
+            // thread[0].thread_link = "https://vmware.slack.com/archives/" + keys.channel + "/p" + thread[0].ts
+            // thread.forEach((post, j) => {
+                // if (thread[0].user) {
+        //             q.push(retrieveUsernameFromUserID(thread[0].user).then(result => {
+        //                 thread[0].userInfo = rescult
+        //             }));
+        //         } else if (thread[0].bot_id) {
+        //             //TODO, get bot user info
+        //         }
+        //     })
+        // })
+        if(message.username) {
+            message.userInfo ={real_name:message.username}
+            res(message);
+        }
+        getUserbyId(userID).then(user=>{
+            if(user.length){
+                message.userInfo = user;
+                res(message)
+            }else{
+                //TODO: insert into DB this user's info
+                retrieveUsernameFromUserID(userID,message)
+                .then(message=>res(message))
+                .catch(rej)
+            }
+            
         }).catch(rej)
+        
     })
 }
 
@@ -244,16 +250,6 @@ function postToThread(req, res) {
     });
 }
 
-console.log("getting user")
-getUserFromDB("U1K8Z9AFX");
 
-function getUserFromDB(id){
-    getUserbyId(id).then(data=>{
-        if(data){
-            // return
-        }
-    })
-
-}
 
 module.exports = apiRouter;
