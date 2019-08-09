@@ -8,11 +8,8 @@ module.exports = function(sequelize, DataTypes) {
             type: DataTypes.STRING,
             allowNull: false
         },
-        first_name: {
+        real_name: {
             type: DataTypes.STRING
-        },
-        last_name: {
-            type:DataTypes.STRING
         }
     });
 

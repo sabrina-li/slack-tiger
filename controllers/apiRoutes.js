@@ -15,7 +15,8 @@ const insertMessage = databaseUtils.insertMessage
     , retrieveThreadsFromSlackAPI = slackapi.retrieveThreadsFromSlackAPI
     , retrieveUsernameFromUserID = slackapi.retrieveUsernameFromUserID
     , postMessageToThread = slackapi.postMessageToThread
-    , getUserbyId = databaseUtils.getUserbyId;
+    , getUserbyId = databaseUtils.getUserbyId
+    , createOrUpdateUser = databaseUtils.createOrUpdateUser;
 
 apiRouter.get('/tags', getTags);
 apiRouter.post('/events', saveEvents);
@@ -130,8 +131,6 @@ function getMessagesForTicket(req, res) {
     
 
     const sendRes = (res,data) => {
-        console.log("++++++++++++++++++++++++++++++++++++++");
-        console.log(data);
         res.set({
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Credentials': 'true',
@@ -201,33 +200,26 @@ function getMessagesForTicket(req, res) {
 // get one user by  ID, first check in DB, if not in DB, get via API then write to DB
 function getOneUser(userID,message) {
     return new Promise((res, rej) => {
-        // threads.forEach((thread, i) => {
-            // thread[0].thread_link = "https://vmware.slack.com/archives/" + keys.channel + "/p" + thread[0].ts
-            // thread.forEach((post, j) => {
-                // if (thread[0].user) {
-        //             q.push(retrieveUsernameFromUserID(thread[0].user).then(result => {
-        //                 thread[0].userInfo = rescult
-        //             }));
-        //         } else if (thread[0].bot_id) {
-        //             //TODO, get bot user info
-        //         }
-        //     })
-        // })
         if(message.username) {
-            message.userInfo ={real_name:message.username}
+            message.userInfo ={username:message.username,real_name:message.username}
             res(message);
         }
+        
         getUserbyId(userID).then(user=>{
-            if(user.length){
+            console.log("user",user.user_id);
+            console.log(user.length)
+            if(user.length>0){
                 message.userInfo = user;
                 res(message)
             }else{
                 //TODO: insert into DB this user's info
                 retrieveUsernameFromUserID(userID,message)
-                .then(message=>res(message))
+                .then(message=>{
+                    createOrUpdateUser(message.user,message.userInfo.username,message.userInfo.real_name)
+                    res(message)
+                })
                 .catch(rej)
             }
-            
         }).catch(rej)
         
     })

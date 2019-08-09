@@ -53,10 +53,38 @@ function getUserbyId(id){
     })
 }
 
+
+function createOrUpdateUser(user_id,username=null,real_name=null){
+
+    db.User.findOne({ where: {user_id:user_id} })
+        .then(function(obj) {
+            if(obj) { // update
+                if(obj.real_name!=real_name)
+                return obj.update({
+                    user_id:user_id,
+                    username:username,
+                    real_name:real_name
+                }).then((results)=>{
+                    console.log("user ID: ", results.id, "updated")});
+            }
+            else { // insert
+                return db.User.create({
+                    user_id:user_id,
+                    username:username,
+                    real_name:real_name
+                }).then((results)=>{
+                    console.log("user ID: ", results.id, "created");});
+            }
+        }).catch(error=>{
+            console.error(error);
+        });
+}
+
 module.exports={
     insertMessage : insertMessage,
     getDistinctTags : getDistinctTags,
     getMessageTSbyTag : getMessageTSbyTag,
     getLatestMessageForTicket: getLatestMessageForTicket,
-    getUserbyId:  getUserbyId
+    getUserbyId:  getUserbyId,
+    createOrUpdateUser: createOrUpdateUser
 }
