@@ -46,7 +46,7 @@ function getMessageTSbyTag(tags){
 }
 
 function getUserbyId(id){
-    return db.User.findAll({ 
+    return db.User.findOne({ 
         where: { 
             user_id: id
         },

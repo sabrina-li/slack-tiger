@@ -195,8 +195,6 @@ function getMessagesForTicket(req, res) {
 }
 
 
-// getOneUser("U7LPR7DNZ").then(console.log);
-
 // get one user by  ID, first check in DB, if not in DB, get via API then write to DB
 function getOneUser(userID,message) {
     return new Promise((res, rej) => {
@@ -206,13 +204,12 @@ function getOneUser(userID,message) {
         }
         
         getUserbyId(userID).then(user=>{
-            console.log("user",user.user_id);
+            console.log("user",user);
             console.log(user.length)
             if(user.length>0){
                 message.userInfo = user;
                 res(message)
             }else{
-                //TODO: insert into DB this user's info
                 retrieveUsernameFromUserID(userID,message)
                 .then(message=>{
                     createOrUpdateUser(message.user,message.userInfo.username,message.userInfo.real_name)
