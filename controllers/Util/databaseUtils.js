@@ -14,6 +14,7 @@ function insertMessage(message_ts,user=null,tags=null,ticket=null,message_previe
         message_preview:message_preview
     }).then((results)=>{
         console.log("message ID: ", results.id, "created");
+        console.log(results);
     }).catch(error=>{
         console.error(error);
     });

@@ -7,20 +7,23 @@ process.env.NODE_ENV = "production";
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
 
 const apiRouter = require("./controllers/apiRoutes");
 // const htmlRouter = require("./controllers/htmlRoutes");
 var db = require("./models");
 //const routes = require("./routes");
 
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
-
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-//app.use(routes);
+// Make io accessible to our router
+app.use(function(req,res,next){
+    req.io = io;
+    next();
+});
 app.use('/api', apiRouter);
 
 if (process.env.NODE_ENV === "production") {
@@ -59,26 +62,23 @@ db.sequelize.sync(syncOptions).then(function () {
         db.Message.bulkCreate(data)
         db.User
     }
-
-    // io.on('connection', () =>{
-    //     console.log('a user is connected');
-    // })
-    io.on('connection', (client) => {
-        client.on('subscribeToTimer', (interval) => {
-          console.log('client is subscribing to timer with interval ', interval);
-          setInterval(() => {
-            client.emit('timer', new Date());
-          }, interval);
-        });
-      });
-
-    http.listen(PORT, function () {
-        console.log(
-            "==> 🌎  Listening on port %s. Visit http://localhost:%s/ in your browser.",
-            PORT,
-            PORT
-        );
-    });
 });
 
+http.listen(PORT, function () {
+    console.log(
+        "==> 🌎  Listening on port %s. Visit http://localhost:%s/ in your browser.",
+        PORT,
+        PORT
+    );
+});
+
+io.on('connection', (socket) =>{
+    console.log('a user is connected');
+    io.sockets.emit("message","first")
+    socket.on('disconnect', () => {
+        console.log('user disconnected')
+    })
+})
+
+// console.log("io",io)
 module.exports = app;

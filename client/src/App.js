@@ -6,21 +6,17 @@ import axios from 'axios';
 import './App.scss'
 
 import openSocket from 'socket.io-client';
-const  socket = openSocket('http://localhost:3001');
-function subscribeToTimer(cb) {
-  socket.on('timer', timestamp => cb(null, timestamp));
-  socket.emit('subscribeToTimer', 1000);
-}
-
-
-
+const  socket = openSocket('http://localhost:3001');//TODO: use env variable here
 
 class App extends React.Component {
   constructor(props) {
     super(props);
-    subscribeToTimer((err, timestamp) => this.setState({ 
-      timestamp 
-    }));
+    
+    socket.on('message', (data) => {
+      console.log("message!",data);
+      this.setState({ data });
+    });
+
     this.state = {
       showTags: false,//TODO:use hamberger menu
       tags: [],
@@ -119,7 +115,7 @@ class App extends React.Component {
       return (<main className="container">
         {this.state.loading?<div className="loader"></div>:''}
         <h4>Slack View</h4>
-        <h4>{this.state.timestamp}</h4>
+        <h4>{this.state.data}</h4>
         <div className="row">
           <form onSubmit={this.handleSubmit}>
             <label>

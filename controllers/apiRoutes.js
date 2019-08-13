@@ -7,7 +7,6 @@ const databaseUtils = require('./Util/databaseUtils');
 const slackapi = require('./Util/slackapi-int');
 
 
-
 //TODO: object decontruction
 const insertMessage = databaseUtils.insertMessage
     , getDistinctTags = databaseUtils.getDistinctTags
@@ -29,10 +28,11 @@ apiRouter.post('/reply', postToThread);
 
 // used for event listener, to save incoming events to DB
 // POST /events
-function saveEvents(req, res) {
+function saveEvents(req, res,io) {
     // console.log(req.body)
     const data = req.body;
     let tags = [], repost = [], rawtags, thread_ts;
+
     //TODO subtype message changed
     //TODO logging
     if (data.challenge) {
@@ -61,8 +61,11 @@ function saveEvents(req, res) {
                 });
             }
             try {
-                insertMessage(data.event.ts, data.event.user, tags, ticket, post.text);
-                io.emit('message', data);
+                insertMessage(data.event.ts, data.event.user, tags, ticket, post.text).then(results=>{
+                    req.io.sockets.emit('message', results);
+                });    
+                
+                console.log(data);
             } catch (err) { console.error(err) }
         }else {
             // only insert when it's a new tiger post
@@ -103,7 +106,6 @@ function getTopPosts(req, res) {
     getMessageTSbyTag(req.query.tags.split(","), req.query.from)
         .then(dbresult => {
             const threads = Array.from(dbresult).sort((a, b) => { return Number(b.message_ts) - Number(a.message_ts) });
-            console.log("threads:",threads);
             if (threads.length > 10) threads.length = 10;//TODO pagination
 
             threads.forEach(thread => {
@@ -112,7 +114,7 @@ function getTopPosts(req, res) {
             });
             Promise.all(queue).then(threadWithUser => {
                 // threadWithUser.sort((a,b)=>{return a.thread_ts-b.thread_ts})
-                // console.log(threadWithUser);
+                console.log("threadWithUser",threadWithUser);
                 res.set({
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Credentials': 'true',
@@ -182,7 +184,6 @@ function getMessagesForTicket(req, res) {
                         repliesQueue.push(getOneUser(reply.user,reply));
                     })
                     Promise.all(repliesQueue).then(thread=>{
-                        console.log("thread:,",thread)
                         allThreads.push(thread);
                         if (next_thread_ts) { retrieveNextThread(next_thread_ts) }
                         else{sendRes(res,allThreads)}
@@ -245,4 +246,4 @@ function postToThread(req, res) {
 
 
 
-module.exports = apiRouter;
+module.exports =  apiRouter
