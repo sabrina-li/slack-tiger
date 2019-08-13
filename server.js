@@ -13,6 +13,10 @@ const apiRouter = require("./controllers/apiRoutes");
 var db = require("./models");
 //const routes = require("./routes");
 
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -55,7 +59,20 @@ db.sequelize.sync(syncOptions).then(function () {
         db.Message.bulkCreate(data)
         db.User
     }
-    app.listen(PORT, function () {
+
+    // io.on('connection', () =>{
+    //     console.log('a user is connected');
+    // })
+    io.on('connection', (client) => {
+        client.on('subscribeToTimer', (interval) => {
+          console.log('client is subscribing to timer with interval ', interval);
+          setInterval(() => {
+            client.emit('timer', new Date());
+          }, interval);
+        });
+      });
+
+    http.listen(PORT, function () {
         console.log(
             "==> 🌎  Listening on port %s. Visit http://localhost:%s/ in your browser.",
             PORT,

@@ -61,7 +61,8 @@ function saveEvents(req, res) {
                 });
             }
             try {
-                insertMessage(data.event.ts, data.event.user, tags, ticket, post.text)
+                insertMessage(data.event.ts, data.event.user, tags, ticket, post.text);
+                io.emit('message', data);
             } catch (err) { console.error(err) }
         }else {
             // only insert when it's a new tiger post
