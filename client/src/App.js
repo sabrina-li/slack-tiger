@@ -14,9 +14,14 @@ class App extends React.Component {
     
     socket.on('message', (newMessage) => {
       // this.setState({ newMessage });
-      this.setState(prevState=>{
-        return {message:prevState.messages.unshift(newMessage)};
-      })
+      console.log(this.state.selectedTags);
+      console.log(newMessage.tags);
+      console.log(this.state.selectedTags.indexOf(newMessage.tags));
+      if(this.state.selectedTags.indexOf(newMessage.tags) !== -1){
+        this.setState(prevState=>{
+          return {message:prevState.messages.unshift(newMessage)};
+        })
+      }
     });
 
     this.state = {
