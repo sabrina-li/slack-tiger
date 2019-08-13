@@ -7,6 +7,7 @@ const databaseUtils = require('./Util/databaseUtils');
 const slackapi = require('./Util/slackapi-int');
 
 
+
 //TODO: object decontruction
 const insertMessage = databaseUtils.insertMessage
     , getDistinctTags = databaseUtils.getDistinctTags
@@ -29,6 +30,7 @@ apiRouter.post('/reply', postToThread);
 // used for event listener, to save incoming events to DB
 // POST /events
 function saveEvents(req, res) {
+    // console.log(req.body)
     const data = req.body;
     let tags = [], repost = [], rawtags, thread_ts;
     //TODO subtype message changed
@@ -99,7 +101,8 @@ function getTopPosts(req, res) {
     //Get all messages based on the tags provided from DB
     getMessageTSbyTag(req.query.tags.split(","), req.query.from)
         .then(dbresult => {
-            const threads = Array.from(dbresult).sort((a, b) => { return b - a });
+            const threads = Array.from(dbresult).sort((a, b) => { return Number(b.message_ts) - Number(a.message_ts) });
+            console.log("threads:",threads);
             if (threads.length > 10) threads.length = 10;//TODO pagination
 
             threads.forEach(thread => {
@@ -107,6 +110,8 @@ function getTopPosts(req, res) {
                 queue.push(getOneUser(thread.user, thread.dataValues))
             });
             Promise.all(queue).then(threadWithUser => {
+                // threadWithUser.sort((a,b)=>{return a.thread_ts-b.thread_ts})
+                // console.log(threadWithUser);
                 res.set({
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Credentials': 'true',
@@ -204,7 +209,7 @@ function getOneUser(userID,message) {
         }
         
         getUserbyId(userID).then(user=>{
-            if(user.length>0){
+            if(user && user.length>0){
                 message.userInfo = user;
                 res(message)
             }else{

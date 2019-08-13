@@ -3,7 +3,7 @@ import Checkbox from "./components/checkbox.jsx"
 import Card from "./components/card.jsx"
 import CardStream from "./components/cardStream.jsx"
 import axios from 'axios';
-import './App.css'
+import './App.scss'
 
 class App extends React.Component {
   constructor(props) {
@@ -17,7 +17,6 @@ class App extends React.Component {
       ticketThreads: [],
       ticketID:''
     };
-    this.goToTicket = this.goToTicket.bind(this);
     this.handleTagSelection = this.handleTagSelection.bind(this);
   }
 
@@ -48,21 +47,24 @@ class App extends React.Component {
       });
   }
 
-  goToTicket(e, ticketID) {
+  goToTicket = (e, ticketID) => {
+    this.setState({
+      loading:true
+    })
     axios("/api/ticket/" + ticketID)
       .then(res => {
-        console.log(res);
         if (res.data && res.data[0]) {
-          console.log("data", res.data);
           this.setState({
             ticketThreads: res.data,
-            viewTicket: true
+            viewTicket: true,
+            loading:false
           })
         } else {
           alert("ticket not found in our DB... Please confirm the ticket is correct! If it is our fault, we will improve this soon!")
           this.setState({
             messageCards: null,
-            viewTicket: true
+            viewTicket: true,
+            loading:false
           })
         }
       }).catch(error => {
@@ -71,13 +73,11 @@ class App extends React.Component {
   }
 
   handleChange = event => {
-    console.log(event.target.value);
     this.setState({ ticketID: event.target.value });
   }
 
   handleSubmit = event => {
     event.preventDefault();
-    console.log("gototicket")
     this.goToTicket(event,this.state.ticketID)
   }
 
@@ -86,7 +86,6 @@ class App extends React.Component {
       //fetch tags from server
       axios('/api/tags')
         .then((res) => {
-          console.log(res);
           this.setState({ tags: res.data.tags })
         })
         .catch(console.log)
@@ -101,11 +100,11 @@ class App extends React.Component {
         messageCards = <CardStream ticketThreads={this.state.ticketThreads} />
       } else {
         messageCards = this.state.messages.map(message => {
-          console.log("message", message);
-          return <Card message={message} handler={this.goToTicket} />;
+          return <Card message={message} handler={this.goToTicket} key={message.id}/>;
         })
       }
       return (<main className="container">
+        {this.state.loading?<div className="loader"></div>:''}
         <h4>Slack View</h4>
         <div className="row">
           <form onSubmit={this.handleSubmit}>
