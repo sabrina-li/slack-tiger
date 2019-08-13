@@ -38,7 +38,6 @@ class Replies extends React.Component {
             body: JSON.stringify(body), // body data type must match "Content-Type" header
         }).then(response => response.json())
             .then(data => {
-                console.log(data);
                 if (data && data.message) {
                     this.setState({
                         haveNewReply: true,
@@ -64,7 +63,7 @@ class Replies extends React.Component {
         }
         const repliesDiv = this.props.replies.map(reply => {
             return <p key={reply.ts} className="replies">
-                <strong>{reply.user ? reply.user : "Bot User"}:</strong>
+                <strong>{reply.username ? reply.username : reply.userInfo.real_name}:</strong>
                 <br></br>
                 <span dangerouslySetInnerHTML={{ __html: manipulateText(reply.text) }}></span>
                 </p>

@@ -33,7 +33,6 @@ function saveEvents(req, res) {
     let tags = [], repost = [], rawtags, thread_ts;
     //TODO subtype message changed
     //TODO logging
-    // console.log(req.body);
     if (data.challenge) {
         res.send(data.challenge)
     } else {
@@ -177,6 +176,7 @@ function getMessagesForTicket(req, res) {
                         repliesQueue.push(getOneUser(reply.user,reply));
                     })
                     Promise.all(repliesQueue).then(thread=>{
+                        console.log("thread:,",thread)
                         allThreads.push(thread);
                         if (next_thread_ts) { retrieveNextThread(next_thread_ts) }
                         else{sendRes(res,allThreads)}
@@ -204,8 +204,6 @@ function getOneUser(userID,message) {
         }
         
         getUserbyId(userID).then(user=>{
-            console.log("user",user);
-            console.log(user.length)
             if(user.length>0){
                 message.userInfo = user;
                 res(message)
