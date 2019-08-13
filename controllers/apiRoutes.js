@@ -32,6 +32,7 @@ function saveEvents(req, res,io) {
     // console.log(req.body)
     const data = req.body;
     let tags = [], repost = [], rawtags, thread_ts;
+    // req.io.sockets.emit('message', "second!");
 
     //TODO subtype message changed
     //TODO logging
@@ -61,11 +62,17 @@ function saveEvents(req, res,io) {
                 });
             }
             try {
-                insertMessage(data.event.ts, data.event.user, tags, ticket, post.text).then(results=>{
-                    req.io.sockets.emit('message', results);
-                });    
+                insertMessage(data.event.ts, data.event.user, tags, ticket, post.text).then((result)=>{
+                    console.log("message ID: ", result.id, "created");
+                    getOneUser(result.user, result.dataValues).then(resultsWithUser=>{
+                        req.io.sockets.emit('message', resultsWithUser);
+                    }).catch(error=>{
+                        console.error(error);
+                    });
+                }).catch(error=>{
+                    console.error(error);
+                });
                 
-                console.log(data);
             } catch (err) { console.error(err) }
         }else {
             // only insert when it's a new tiger post
@@ -114,7 +121,6 @@ function getTopPosts(req, res) {
             });
             Promise.all(queue).then(threadWithUser => {
                 // threadWithUser.sort((a,b)=>{return a.thread_ts-b.thread_ts})
-                console.log("threadWithUser",threadWithUser);
                 res.set({
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Credentials': 'true',
@@ -197,6 +203,8 @@ function getMessagesForTicket(req, res) {
             if(data){
                 message_ts = data.message_ts;
                 retrieveNextThread(message_ts);
+            }else{
+                sendRes(res,[])
             }
         })
 }

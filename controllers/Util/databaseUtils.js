@@ -6,18 +6,13 @@ function insertMessage(message_ts,user=null,tags=null,ticket=null,message_previe
     tags = (tags.length === 0) ? null:tags.join(',');
     message_preview = (message_preview.length > 65535) ? message_preview.substring(0,65535):message_preview;
    
-    db.Message.create({
+    return db.Message.create({
         message_ts:message_ts,
         user:user,
         tags:tags,
         ticket_no:ticket,
         message_preview:message_preview
-    }).then((results)=>{
-        console.log("message ID: ", results.id, "created");
-        console.log(results);
-    }).catch(error=>{
-        console.error(error);
-    });
+    })
 }
 
 

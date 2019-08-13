@@ -12,9 +12,11 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     
-    socket.on('message', (data) => {
-      console.log("message!",data);
-      this.setState({ data });
+    socket.on('message', (newMessage) => {
+      // this.setState({ newMessage });
+      this.setState(prevState=>{
+        return {message:prevState.messages.unshift(newMessage)};
+      })
     });
 
     this.state = {
@@ -112,10 +114,13 @@ class App extends React.Component {
           return <Card message={message} handler={this.goToTicket} key={message.id}/>;
         })
       }
+      // if(this.state.newMessage){
+      //   console.log(messageCards);
+      //   messageCards.unshift(<Card message={this.state.newMessage} handler={this.goToTicket} key={this.state.newMessage.id}/>)
+      // }
       return (<main className="container">
         {this.state.loading?<div className="loader"></div>:''}
         <h4>Slack View</h4>
-        <h4>{this.state.data}</h4>
         <div className="row">
           <form onSubmit={this.handleSubmit}>
             <label>

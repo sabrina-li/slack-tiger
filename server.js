@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 //set env to PROD
-process.env.NODE_ENV = "production";
+// process.env.NODE_ENV = "production";
 
 const express = require('express');
 const app = express();
@@ -74,7 +74,7 @@ http.listen(PORT, function () {
 
 io.on('connection', (socket) =>{
     console.log('a user is connected');
-    io.sockets.emit("message","first")
+    // io.sockets.emit("message","first")
     socket.on('disconnect', () => {
         console.log('user disconnected')
     })
