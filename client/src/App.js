@@ -117,8 +117,9 @@ class App extends React.Component {
         </div>
 
         <div className="row">
-          {this.state.viewTicket ? <button><i className="fas fa-arrow-left"></i></button> : null}
           {/* TODO:reload with tags when clicked on goback */}
+          {/* {this.state.viewTicket ? <button><i className="fas fa-arrow-left"></i></button> : null} */}
+          
           <div className="col s3 card-panel ">
             <form id="tagsCheckList" action="#">
               {tagsCheckboxes}
