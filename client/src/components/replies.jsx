@@ -38,19 +38,21 @@ class Replies extends React.Component {
             body: JSON.stringify(body), // body data type must match "Content-Type" header
         }).then(response => response.json())
             .then(data => {
-                if (data && data.message) {
+                console.log("data",data)
+                if (data) {
                     this.setState({
-                        haveNewReply: true,
-                        newReply: {
-                            bot_id: data.message.bot_id,
-                            parent_user_id: data.message.parent_user_id,
-                            text: data.message.text,
-                            thread_ts: data.message.thread_ts,
-                            ts: data.message.ts,
-                            type: data.message.type,
-                            user: data.message.user
-                        },
-                        value: ''
+                        haveNewReply: true
+                        , newReply:  data
+                        // {
+                        //     bot_id: data.message.bot_id,
+                        //     parent_user_id: data.message.parent_user_id,
+                        //     text: data.message.text,
+                        //     thread_ts: data.message.thread_ts,
+                        //     ts: data.message.ts,
+                        //     type: data.message.type,
+                        //     user: data.message.user
+                        // }
+                        , value: ''
                     })
                 }
             })
@@ -58,9 +60,10 @@ class Replies extends React.Component {
     }
 
     render() {
-        if (this.state.haveNewReply) {
-            this.props.replies = this.props.replies.concat(this.state.newReply);
-        }
+        // console.log(replies)
+        // if (this.state.haveNewReply) {
+        //     replies = this.props.replies.concat(this.state.newReply);
+        // }
         const repliesDiv = this.props.replies.map(reply => {
             return <p key={reply.ts} className="replies">
                 <strong>{reply.username ? reply.username : reply.userInfo.real_name}:</strong>
@@ -70,7 +73,15 @@ class Replies extends React.Component {
         })
         return <div className="collapsible-body">
             <span>
-            {repliesDiv}
+                {repliesDiv}
+                {
+                    this.state.haveNewReply?
+                    <p key={this.state.newReply.ts} className="replies">
+                        <strong>{this.state.newReply.username ? this.state.newReply.username : this.state.newReply.userInfo.real_name}:</strong>
+                        <br></br>
+                        <span dangerouslySetInnerHTML={{ __html: manipulateText(this.state.newReply.text) }}></span>
+                    </p>:''
+                }
             <form data={this.props.ts}>
                     <textarea className="reply-message" value={this.state.value} onChange={this.handleChange} type="text" name="reply"></textarea>
                     <br></br>

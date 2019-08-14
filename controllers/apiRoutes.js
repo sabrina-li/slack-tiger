@@ -220,7 +220,7 @@ function getOneUser(userID,message) {
             message.userInfo ={username:message.username,real_name:message.username}
             res(message);
         }
-        
+        console.log("here",userID)
         getUserbyId(userID).then(user=>{
             if(user && user.length>0){
                 message.userInfo = user;
@@ -243,12 +243,16 @@ function postToThread(req, res) {
     const message = req.body.message;
     const thread_ts = req.body.thread_ts;
     postMessageToThread(message, thread_ts).then(response => {
-        res.set({
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Credentials': 'true',
-            'Access-Control-Allow-Methods': 'GET, POST'
+        console.log("posttothread",response.message.user);
+        getOneUser(response.message.user,response.message).then(responseWithUser=>{
+            res.set({
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': 'true',
+                'Access-Control-Allow-Methods': 'GET, POST'
+            })
+            res.status(200).send(responseWithUser);
         })
-        res.status(200).send(response);
+        
     }).catch(err => {
         console.error(err);
         throw err;
