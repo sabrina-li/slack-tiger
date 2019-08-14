@@ -8,7 +8,7 @@ class Replies extends React.Component {
         this.state = {
             value: '',
             haveNewReply: false,
-            newReply: {}
+            replies: props.replies || []
         };
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -40,20 +40,16 @@ class Replies extends React.Component {
             .then(data => {
                 console.log("data",data)
                 if (data) {
-                    this.setState({
-                        haveNewReply: true
-                        , newReply:  data
-                        // {
-                        //     bot_id: data.message.bot_id,
-                        //     parent_user_id: data.message.parent_user_id,
-                        //     text: data.message.text,
-                        //     thread_ts: data.message.thread_ts,
-                        //     ts: data.message.ts,
-                        //     type: data.message.type,
-                        //     user: data.message.user
-                        // }
-                        , value: ''
+                    this.setState(prevState=> {
+                        prevState.replies.push(data);
+                        // const replies = prevState.replies
+                        return{
+                            haveNewReply: true
+                            , replies:  prevState.replies
+                            , value: ''
+                        }
                     })
+                    
                 }
             })
             .catch(console.error);//TODO: display error
@@ -64,24 +60,27 @@ class Replies extends React.Component {
         // if (this.state.haveNewReply) {
         //     replies = this.props.replies.concat(this.state.newReply);
         // }
-        const repliesDiv = this.props.replies.map(reply => {
+        let repliesDiv = this.state.replies.map(reply => {
             return <p key={reply.ts} className="replies">
                 <strong>{reply.username ? reply.username : reply.userInfo.real_name}:</strong>
                 <br></br>
                 <span dangerouslySetInnerHTML={{ __html: manipulateText(reply.text) }}></span>
                 </p>
         })
+        // if(this.state.haveNewReply){
+        //     repliesDiv.push(
+        //     <p key={this.state.newReply.ts} className="replies">
+        //         <strong>{this.state.newReply.username ? this.state.newReply.username : this.state.newReply.userInfo.real_name}:</strong>
+        //         <br></br>
+        //         <span dangerouslySetInnerHTML={{ __html: manipulateText(this.state.newReply.text) }}></span>
+        //     </p>)
+        // }
+        // console.log(repliesDiv);
+        console.log(this.state.replies)
+                    
         return <div className="collapsible-body">
             <span>
                 {repliesDiv}
-                {
-                    this.state.haveNewReply?
-                    <p key={this.state.newReply.ts} className="replies">
-                        <strong>{this.state.newReply.username ? this.state.newReply.username : this.state.newReply.userInfo.real_name}:</strong>
-                        <br></br>
-                        <span dangerouslySetInnerHTML={{ __html: manipulateText(this.state.newReply.text) }}></span>
-                    </p>:''
-                }
             <form data={this.props.ts}>
                     <textarea className="reply-message" value={this.state.value} onChange={this.handleChange} type="text" name="reply"></textarea>
                     <br></br>
