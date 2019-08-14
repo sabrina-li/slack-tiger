@@ -11,7 +11,6 @@ const  socket = openSocket('http://localhost:3001');//TODO: use env variable her
 class App extends React.Component {
   constructor(props) {
     super(props);
-    
     socket.on('message', (newMessage) => {
       // this.setState({ newMessage });
       console.log(this.state.selectedTags);
@@ -55,6 +54,7 @@ class App extends React.Component {
     axios("/api/posts?tags=" + selectedTags + "&from=1522962323.00000")
       .then((res) => {
         res.data.sort((a, b) => { return Number(b.ts) - Number(a.ts) });
+        console.log(res.data)
         this.setState(state => ({
           messages: res.data
         }));

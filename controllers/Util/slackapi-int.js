@@ -42,8 +42,6 @@ function retrieveUsernameFromUserID(userID,message){
             .then(function (result) {
                 // console.log(userurl+userID)
                 result =JSON.parse(result);
-                console.log(result);
-                
                 if(result.error === undefined && message){
                     userInfo = {real_name:result.user.real_name?result.user.real_name:result.user.profile.real_name,username:result.user.name,userID:userID};
                     message.userInfo = userInfo

@@ -30,14 +30,21 @@ function getLatestMessageForTicket(ticketID){
 }
 
 function getMessageTSbyTag(tags){
+    const tagsCreteria = [];
+    tags.forEach(tag=>{
+        tagsCreteria.push({[Op.like]:'%'+tag+'%'})
+    })
+    console.log(tagsCreteria)
     return db.Message.findAll({ 
         where: { 
-            tags: { [Op.or]: tags },
+            tags: { [Op.or]: tagsCreteria
+            },
             createdAt: {
                 [Op.lt]: new Date(),
                 // [Op.gt]: new Date(new Date() - 30 * 24 * 60 * 60 * 1000)
                 }
         },
+        // logging: console.log
     })
 }
 

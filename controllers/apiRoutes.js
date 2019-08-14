@@ -110,6 +110,7 @@ function getTopPosts(req, res) {
     let queue = [];
     let threads = [];
     //Get all messages based on the tags provided from DB
+    console.log(req.query.tags.split(","), req.query.from)
     getMessageTSbyTag(req.query.tags.split(","), req.query.from)
         .then(dbresult => {
             const threads = Array.from(dbresult).sort((a, b) => { return Number(b.message_ts) - Number(a.message_ts) });
@@ -118,6 +119,7 @@ function getTopPosts(req, res) {
             threads.forEach(thread => {
                 thread.dataValues.thread_link = "https://vmware.slack.com/archives/" + keys.channel + "/p" + thread.message_ts
                 queue.push(getOneUser(thread.user, thread.dataValues))
+                //TODO: get reply count for each thread
             });
             Promise.all(queue).then(threadWithUser => {
                 // threadWithUser.sort((a,b)=>{return a.thread_ts-b.thread_ts})
@@ -156,6 +158,9 @@ function getMessagesForTicket(req, res) {
     const retrieveNextThread = (message_ts) => {
             retrieveThreadsFromSlackAPI(message_ts).then(thread => {
                 //thread is the entire thread(including all replies) for this message_ts
+                console.log("++++++++++++++++++++")
+                console.log(thread[0].reply_count)
+                
                 let postPrefixSplit = [];
                 let next_thread_ts;
                  
