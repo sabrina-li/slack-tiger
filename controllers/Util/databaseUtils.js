@@ -34,7 +34,6 @@ function getMessageTSbyTag(tags){
     tags.forEach(tag=>{
         tagsCreteria.push({[Op.like]:'%'+tag+'%'})
     })
-    console.log(tagsCreteria)
     return db.Message.findAll({ 
         where: { 
             tags: { [Op.or]: tagsCreteria

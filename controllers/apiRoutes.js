@@ -110,7 +110,6 @@ function getTopPosts(req, res) {
     let queue = [];
     let threads = [];
     //Get all messages based on the tags provided from DB
-    console.log(req.query.tags.split(","), req.query.from)
     getMessageTSbyTag(req.query.tags.split(","), req.query.from)
         .then(dbresult => {
             const threads = Array.from(dbresult).sort((a, b) => { return Number(b.message_ts) - Number(a.message_ts) });
@@ -158,9 +157,7 @@ function getMessagesForTicket(req, res) {
     const retrieveNextThread = (message_ts) => {
             retrieveThreadsFromSlackAPI(message_ts).then(thread => {
                 //thread is the entire thread(including all replies) for this message_ts
-                console.log("++++++++++++++++++++")
-                console.log(thread[0].reply_count)
-                
+    
                 let postPrefixSplit = [];
                 let next_thread_ts;
                  
@@ -173,7 +170,8 @@ function getMessagesForTicket(req, res) {
                     
                     //PROD if the first reply is from the bot user    
                     //have first reply and is from the support bot
-                    if (thread.length > 1 && thread[1] && !process.env.NODE_ENV || (process.env.NODE_ENV === "production" && thread[1].bot_id === "B60JCMYBD")) {
+                    
+                    if ((thread[1] && !process.env.NODE_ENV) || (thread[1] && process.env.NODE_ENV === "production" && thread[1].bot_id === "B60JCMYBD")) {
                             //find and split each bot message to get all threads in the chain
                             //thread[1] is the first reply in the current thread
                             prefixes.forEach(prefix=>{
