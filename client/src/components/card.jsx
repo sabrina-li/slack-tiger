@@ -7,6 +7,7 @@ class Card extends React.Component {
     super(props);
     this.message = this.props.message;
     this.handler = this.props.handler||console.log;
+    this.state={timeDiff:timeago((this.message.message_ts || this.message.ts) * 1000)}
   }
 
   render(){
@@ -18,7 +19,14 @@ class Card extends React.Component {
     //         reactions.push(val.name);
     //     })
     // }
-    const timeDiff = timeago((this.message.message_ts || this.message.ts) * 1000);
+    
+    //update the time display every minute
+    let timer = setInterval(() => {
+      const timeDiff = timeago((this.message.message_ts || this.message.ts) * 1000);
+      this.setState({
+        timeDiff
+      })
+    }, 1000*60);
     const maintext = this.message.message_preview.split('-')
     return <li key={this.message.id}>
             <div className="card-header" data={maintext[1].trim()}>
@@ -26,7 +34,7 @@ class Card extends React.Component {
                     <strong>{maintext[1]} - {maintext[0]} - {this.message.userInfo?this.message.userInfo.real_name:this.message.user}</strong>
                     <a href={this.message.thread_link}> Open in Slack</a>
                     <br></br>
-                    <span className="time-tag">{timeDiff} {/* Date(parseInt(this.message.message_ts))*/}</span>
+                    <span className="time-tag">{this.state.timeDiff} {/* Date(parseInt(this.message.message_ts))*/}</span>
                     <p data-ticket={maintext[1].trim()} onClick={e => this.handler(e,maintext[1].trim())} dangerouslySetInnerHTML={{ __html: manipulateText(maintext.join('-')) }}></p>
                     <p>{reactions}</p>
                 </span>

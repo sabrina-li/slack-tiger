@@ -97,6 +97,11 @@ class App extends React.Component {
     this.goToTicket(event,this.state.ticketID)
   }
 
+  goBack = event =>{
+    event.preventDefault();
+    this.setState({viewTicket:false})
+  }
+
   render() {
     if (this.state.tags && this.state.tags.length === 0) {
       //fetch tags from server
@@ -111,14 +116,7 @@ class App extends React.Component {
         return <Checkbox tag={val} key={val} handler={this.handleTagSelection} />
       });
       let messageCards;
-      if (this.state.viewTicket) {
-        //TODO: fetch and show the ticket with all threads related to the ticket
-        messageCards = <CardStream ticketThreads={this.state.ticketThreads} />
-      } else {
-        messageCards = this.state.messages.map(message => {
-          return <Card message={message} handler={this.goToTicket} key={message.id}/>;
-        })
-      }
+      
       // if(this.state.newMessage){
       //   console.log(messageCards);
       //   messageCards.unshift(<Card message={this.state.newMessage} handler={this.goToTicket} key={this.state.newMessage.id}/>)
@@ -138,7 +136,7 @@ class App extends React.Component {
 
         <div className="row">
           {/* TODO:reload with tags when clicked on goback */}
-          {/* {this.state.viewTicket ? <button><i className="fas fa-arrow-left"></i></button> : null} */}
+          {this.state.viewTicket ? <button onClick={this.goBack}><i className="fas fa-arrow-left"></i></button> : null}
           
           <div className="col s3 card-panel ">
             <form id="tagsCheckList" action="#">
@@ -147,7 +145,16 @@ class App extends React.Component {
           </div>
           <div className="col s9 card-panel" >
             <ul id="posts-panel" >
-              {messageCards}
+              {/* {messageCards} */}
+
+{
+  this.state.viewTicket?
+<CardStream ticketThreads={this.state.ticketThreads} />:
+this.state.messages.map(message => {
+  return <Card message={message} handler={this.goToTicket} key={message.id}/>;
+})
+}
+           
             </ul>
           </div>
         </div>
