@@ -50,7 +50,7 @@ function saveEvents(req, res,io) {
             //not listening in tiger for testing 
             //not listening to anything other than new post/reply
         }
-        if(post){
+        if(post && post.text && post.text.split('-').length>1){
             rawTags = post.text.split('-')[0].trim().split(' ');
             ticket = post.text.split(' - ')[1].trim();
             ticket = isNaN(parseInt(ticket)) ? null : parseInt(ticket);
@@ -63,7 +63,6 @@ function saveEvents(req, res,io) {
             }
             try {
                 insertMessage(data.event.ts, data.event.user, tags, ticket, post.text).then((result)=>{
-                    console.log("message ID: ", result.id, "created");
                     getOneUser(result.user, result.dataValues).then(resultsWithUser=>{
                         req.io.sockets.emit('message', resultsWithUser);
                     }).catch(error=>{
