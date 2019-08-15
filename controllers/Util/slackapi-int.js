@@ -61,12 +61,14 @@ function retrieveUsernameFromUserID(userID,message){
 
 function postMessageToThread(message,thread_ts){
     return new Promise((res,rej)=>{
-        request.post(postMessageurl+'&text='+message+'&thread_ts='+thread_ts)
+        console.log(postMessageurl+'&thread_ts='+thread_ts+'&text='+message)
+        request.post(postMessageurl+'&thread_ts='+thread_ts+'&text='+message)
             .then(function (result) {
                 result =JSON.parse(result);
                 if(result && result.ok && result.message.thread_ts){
                     res(result);
                 }else{
+                    console.log("ERR",result)
                     rej("error posting to thread");
                 }
             })

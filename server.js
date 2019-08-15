@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 //set env to PROD
-process.env.NODE_ENV = "production";
+// process.env.NODE_ENV = "production";
 
 const express = require('express');
 const app = express();
