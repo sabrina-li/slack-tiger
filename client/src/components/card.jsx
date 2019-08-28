@@ -28,14 +28,14 @@ class Card extends React.Component {
       })
     }, 1000*60);
     const maintext = this.message.message_preview.split('-')
-    return <li key={this.message.id}>
+    return <li key={this.message.id} className={this.props.new?"new-message":null}>
             <div className="card-header" data={maintext[1].trim()}>
                 <span>
                     <strong>{maintext[1]} - {maintext[0]} - {this.message.userInfo?this.message.userInfo.real_name:this.message.user}</strong>
                     <a href={this.message.thread_link}> Open in Slack</a>
                     <br></br>
                     <span className="time-tag">{this.state.timeDiff} {/* Date(parseInt(this.message.message_ts))*/}</span>
-                    <p data-ticket={maintext[1].trim()} onClick={e => this.handler(e,maintext[1].trim())} dangerouslySetInnerHTML={{ __html: manipulateText(maintext.join('-')) }}></p>
+                    <p data-ticket={maintext[1].trim()} onClick={e => this.props.onClick(e,maintext[1].trim(),this.props)} dangerouslySetInnerHTML={{ __html: manipulateText(maintext.join('-')) }}></p>
                     <p>{reactions}</p>
                 </span>
             </div>

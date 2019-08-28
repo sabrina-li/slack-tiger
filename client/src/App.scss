@@ -4,6 +4,7 @@ $dark-gray: #999999;
 
 body{
   background: $base-color;
+  color:#1D1C1D;
 }
 
 .loader {
@@ -53,4 +54,8 @@ strong{
 
 .time-tag{
   background: #f5f5f5;
+}
+
+.new-message{
+  background: red;
 }

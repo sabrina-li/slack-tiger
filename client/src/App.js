@@ -6,19 +6,18 @@ import axios from 'axios';
 import './App.scss'
 
 import openSocket from 'socket.io-client';
-const  socket = openSocket('http://localhost:3001');//TODO: use env variable here
+const socket = openSocket('http://localhost:3001');//TODO: use env variable here
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     socket.on('message', (newMessage) => {
-      // this.setState({ newMessage });
-      console.log(this.state.selectedTags);
-      console.log(newMessage.tags);
-      console.log(this.state.selectedTags.indexOf(newMessage.tags));
-      if(this.state.selectedTags.indexOf(newMessage.tags) !== -1){
-        this.setState(prevState=>{
-          return {message:prevState.messages.unshift(newMessage)};
+      if (this.state.selectedTags.indexOf(newMessage.tags) !== -1) {
+        this.setState(prevState => {
+          return { 
+            message: prevState.messages.unshift(newMessage),
+            newMessages: prevState.newMessages.push(newMessage.id)
+          };
         })
       }
     });
@@ -30,7 +29,8 @@ class App extends React.Component {
       messages: [],
       viewTicket: false,
       ticketThreads: [],
-      ticketID:''
+      ticketID: '',
+      newMessages:[]
     };
     this.handleTagSelection = this.handleTagSelection.bind(this);
   }
@@ -63,9 +63,13 @@ class App extends React.Component {
       });
   }
 
-  goToTicket = (e, ticketID) => {
-    this.setState({
-      loading:true
+  goToTicket = (e, ticketID,messageID) => {
+    this.setState(prevState=>
+      {
+        return {
+          loading: true,
+          newMessages:prevState.newMessages.filter(id=>messageID!==id)
+        }
     })
     axios("/api/ticket/" + ticketID)
       .then(res => {
@@ -73,14 +77,14 @@ class App extends React.Component {
           this.setState({
             ticketThreads: res.data,
             viewTicket: true,
-            loading:false
+            loading: false
           })
         } else {
           alert("ticket not found in our DB... Please confirm the ticket is correct! If it is our fault, we will improve this soon!")
           this.setState({
             messageCards: null,
             viewTicket: true,
-            loading:false
+            loading: false
           })
         }
       }).catch(error => {
@@ -94,12 +98,12 @@ class App extends React.Component {
 
   handleSubmit = event => {
     event.preventDefault();
-    this.goToTicket(event,this.state.ticketID)
+    this.goToTicket(event, this.state.ticketID)
   }
 
-  goBack = event =>{
+  goBack = event => {
     event.preventDefault();
-    this.setState({viewTicket:false})
+    this.setState({ viewTicket: false })
   }
 
   render() {
@@ -115,14 +119,13 @@ class App extends React.Component {
       const tagsCheckboxes = this.state.tags.map(val => {
         return <Checkbox tag={val} key={val} handler={this.handleTagSelection} />
       });
-      let messageCards;
-      
+      // let messageCards;
       // if(this.state.newMessage){
       //   console.log(messageCards);
       //   messageCards.unshift(<Card message={this.state.newMessage} handler={this.goToTicket} key={this.state.newMessage.id}/>)
       // }
       return (<main className="container">
-        {this.state.loading?<div className="loader"></div>:''}
+        {this.state.loading ? <div className="loader"></div> : ''}
         <h4>Slack View</h4>
         <div className="row">
           <form onSubmit={this.handleSubmit}>
@@ -137,7 +140,7 @@ class App extends React.Component {
         <div className="row">
           {/* TODO:reload with tags when clicked on goback */}
           {this.state.viewTicket ? <button onClick={this.goBack}><i className="fas fa-arrow-left"></i></button> : null}
-          
+
           <div className="col s3 card-panel ">
             <form id="tagsCheckList" action="#">
               {tagsCheckboxes}
@@ -147,14 +150,15 @@ class App extends React.Component {
             <ul id="posts-panel" >
               {/* {messageCards} */}
 
-{
-  this.state.viewTicket?
-<CardStream ticketThreads={this.state.ticketThreads} />:
-this.state.messages.map(message => {
-  return <Card message={message} handler={this.goToTicket} key={message.id}/>;
-})
-}
-           
+              {
+                this.state.viewTicket ?
+                  <CardStream ticketThreads={this.state.ticketThreads} /> :
+                  this.state.messages.map(message => {
+                    const isNew = this.state.newMessages.indexOf(message.id)!==-1
+                    return <Card message={message} onClick={this.goToTicket} key={message.id} id={message.id} new={isNew}/>;
+                  })
+              }
+
             </ul>
           </div>
         </div>
