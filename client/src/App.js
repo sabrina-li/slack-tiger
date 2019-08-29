@@ -9,34 +9,45 @@ import openSocket from 'socket.io-client';
 const socket = openSocket('http://localhost:3001');//TODO: use env variable here
 
 class App extends React.Component {
-  constructor(props) {
-    super(props);
-    socket.on('message', (newMessage) => {
-      if (this.state.selectedTags.indexOf(newMessage.tags) !== -1) {
-        this.setState(prevState => {
-          return { 
-            message: prevState.messages.unshift(newMessage),
-            newMessages: prevState.newMessages.push(newMessage.id)
-          };
-        })
-      }
-    });
+  state = {
+    showTags: false,//TODO:use hamberger menu
+    tags: [],
+    selectedTags: [],
+    messages: [],
+    viewTicket: false,
+    ticketThreads: [],
+    ticketID: '',
+    newMessages:[]
+  };
 
-    this.state = {
-      showTags: false,//TODO:use hamberger menu
-      tags: [],
-      selectedTags: [],
-      messages: [],
-      viewTicket: false,
-      ticketThreads: [],
-      ticketID: '',
-      newMessages:[]
-    };
-    this.handleTagSelection = this.handleTagSelection.bind(this);
+  addNewMessage = (newMessage) => {
+    if (this.state.selectedTags.indexOf(newMessage.tags) !== -1) {
+      this.setState(prevState => {
+        return { 
+          message: prevState.messages.unshift(newMessage),
+          newMessages: [...prevState.newMessages,newMessage.id]
+        };
+      })
+    }
   }
 
+  componentDidMount(){
+    socket.on( 'connect', function () {
+      console.log( 'connected to server' );
+    } );
 
-  handleTagSelection(id, e) {
+    socket.on( 'disconnect', function () {
+      console.log( 'disconnected to server' );
+    } );
+
+    socket.on('message', this.addNewMessage);
+  }
+
+  componentWillUnmount(){
+    socket.off('message',this.addNewMessage);
+  }
+
+  handleTagSelection = (id, e) =>{
     const selectedTags = Array(...this.state.selectedTags);
     const idx = selectedTags.indexOf(id);
     if (idx === -1) {
@@ -54,7 +65,6 @@ class App extends React.Component {
     axios("/api/posts?tags=" + selectedTags + "&from=1522962323.00000")
       .then((res) => {
         res.data.sort((a, b) => { return Number(b.ts) - Number(a.ts) });
-        console.log(res.data)
         this.setState(state => ({
           messages: res.data
         }));
@@ -113,7 +123,7 @@ class App extends React.Component {
         .then((res) => {
           this.setState({ tags: res.data.tags })
         })
-        .catch(console.log)
+        .catch(console.error)
       return <div className="loader"></div>;
     } else {
       const tagsCheckboxes = this.state.tags.map(val => {

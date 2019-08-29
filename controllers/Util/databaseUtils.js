@@ -48,7 +48,6 @@ function getMessageTSbyTag(tags){
 }
 
 function getUserbyId(id){
-    console.log(id)
     return db.User.findOne({ 
         where: { 
             user_id: id

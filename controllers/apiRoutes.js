@@ -23,6 +23,7 @@ apiRouter.post('/events', saveEvents);
 apiRouter.get('/posts', getTopPosts);
 apiRouter.get('/ticket/:ticketID', getMessagesForTicket);
 apiRouter.post('/reply', postToThread);
+apiRouter.get('/user/:userID',getUser);
 
 
 
@@ -99,6 +100,23 @@ function getTags(req, res) {
         res.json({ tags: result });
     });
 }
+
+function getUser(req, res) {
+    const userID = req.params.userID;
+    getUserbyId(userID).then(user=>{
+        if(user && user.length>0){
+            res.json(user)
+        }else{
+            retrieveUsernameFromUserID(userID,{user})
+            .then(result=>{
+                createOrUpdateUser(userID,result.userInfo.username,result.userInfo.real_name)
+                res.json(result)
+            })
+            .catch(console.error)
+        }
+    }).catch(console.error)
+}
+
 
 
 //TEST
@@ -205,7 +223,7 @@ function getMessagesForTicket(req, res) {
             if(data){
                 message_ts = data.message_ts;
                 retrieveNextThread(message_ts);
-            }else{
+            }else{//TODO: if the ticketId is none
                 sendRes(res,[])
             }
         })

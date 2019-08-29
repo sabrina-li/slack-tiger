@@ -27,10 +27,10 @@ class CardStream extends React.Component {
           postText.message_preview = postText.text;
           let replies = thread.slice(1);
           
-          return <li key={postText.ts}>
+          return <div key={postText.ts}>
                     <Card  message={postText} />
                     <Replies replies={replies} ts={postText.ts}/>
-                  </li>
+                  </div>
         });
         return allThreadsTicketCards;
       }

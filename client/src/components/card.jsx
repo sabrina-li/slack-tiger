@@ -10,6 +10,24 @@ class Card extends React.Component {
     this.state={timeDiff:timeago((this.message.message_ts || this.message.ts) * 1000)}
   }
 
+
+  componentDidMount(){
+    //update the time display every minute
+    
+    this.timer = setInterval(() => {
+      const timeDiff = timeago((this.message.message_ts || this.message.ts) * 1000);
+      this.setState({
+        timeDiff
+      })
+    }, 1000*60);
+    console.log("set",this.timer);
+  }
+
+  componentWillUnmount(){
+    console.log("clear",this.timer);
+    clearInterval(this.timer);
+  }
+
   render(){
     //TODO:add reactions
     let reactions = [];
@@ -20,13 +38,7 @@ class Card extends React.Component {
     //     })
     // }
     
-    //update the time display every minute
-    let timer = setInterval(() => {
-      const timeDiff = timeago((this.message.message_ts || this.message.ts) * 1000);
-      this.setState({
-        timeDiff
-      })
-    }, 1000*60);
+    
     const maintext = this.message.message_preview.split('-')
     return <li key={this.message.id} className={this.props.new?"new-message":null}>
             <div className="card-header" data={maintext[1].trim()}>
@@ -35,7 +47,7 @@ class Card extends React.Component {
                     <a href={this.message.thread_link}> Open in Slack</a>
                     <br></br>
                     <span className="time-tag">{this.state.timeDiff} {/* Date(parseInt(this.message.message_ts))*/}</span>
-                    <p data-ticket={maintext[1].trim()} onClick={e => this.props.onClick(e,maintext[1].trim(),this.props)} dangerouslySetInnerHTML={{ __html: manipulateText(maintext.join('-')) }}></p>
+                    <p data-ticket={maintext[1].trim()} onClick={e => this.props.onClick(e,maintext[1].trim(),this.props.id)} dangerouslySetInnerHTML={{ __html: manipulateText(maintext.join('-')) }}></p>
                     <p>{reactions}</p>
                 </span>
             </div>
