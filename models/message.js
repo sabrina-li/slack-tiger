@@ -14,6 +14,14 @@ module.exports = function(sequelize, DataTypes) {
         user: {
             type:DataTypes.STRING
         },
+        has_reply:{
+            type:DataTypes.BOOLEAN,
+            defaultValue:false
+        },
+        alerted:{
+            type:DataTypes.BOOLEAN,
+            defaultValue:false
+        },
         message_preview: {
             type: DataTypes.TEXT
         }

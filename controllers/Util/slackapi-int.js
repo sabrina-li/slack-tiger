@@ -9,6 +9,9 @@ const userurl = "https://slack.com/api/users.info?token="+secrets.keys.token
                 + "&user=";
 const postMessageurl = "https://slack.com/api/chat.postMessage?as_user=true&token="+secrets.keys.token
                 +"&channel="+secrets.keys.channel;
+const postChannelurl = "https://slack.com/api/chat.postMessage?token="+secrets.keys.token
+                +"&channel="+secrets.keys.channel+"&parse=full";
+const thread = 'https://vmware.slack.com/archives/'+secrets.keys.channel+'/p';
                 
 
 
@@ -79,7 +82,31 @@ function postMessageToThread(message,thread_ts){
     })
 }
 
+const sentAlertToChannel = (messageTS) => {
+    console.log("messageTS",messageTS);
+    if(process.env === "production" ){
+    }else{
+        const message = thread + messageTS;
+        console.log(message);
+        request.post(postChannelurl+'&text='+message)
+            .then(function (result) {
+                result =JSON.parse(result);
+                if(result && result.ok && result.message){
+                    res(result);
+                }else{
+                    console.log("ERR",result)
+                    rej("error posting to thread");
+                }
+            })
+            .catch(function (err) {
+                // failed...
+                rej(err);
+            });
+    }
+}
+
 // retrieveThreadsFromSlackAPI(threadTS);
 module.exports.retrieveThreadsFromSlackAPI = retrieveThreadsFromSlackAPI;
 module.exports.retrieveUsernameFromUserID = retrieveUsernameFromUserID;
 module.exports.postMessageToThread = postMessageToThread;
+module.exports.sentAlertToChannel = sentAlertToChannel;

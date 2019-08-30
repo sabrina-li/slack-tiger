@@ -82,11 +82,35 @@ function createOrUpdateUser(user_id,username=null,real_name=null){
         });
 }
 
+const setHasReply = (threadts) => {
+    db.Message.findOne({where:{message_ts:threadts, has_reply:false}})
+        .then(message=>{
+            return message.update({
+                has_reply:true
+            })
+        }).then(()=>{
+            console.log("update to has reply:",threadts)
+        }).catch(console.error)
+}
+
+const setSendAlert = (threadts) => {
+    db.Message.findOne({where:{message_ts:threadts, alerted:false}})
+        .then(message=>{
+            return message.update({
+                alerted:true
+            })
+        }).then(()=>{
+            console.log("update to alerted:",threadts)
+        }).catch(console.error)
+}
+
 module.exports={
-    insertMessage : insertMessage,
-    getDistinctTags : getDistinctTags,
-    getMessageTSbyTag : getMessageTSbyTag,
-    getLatestMessageForTicket: getLatestMessageForTicket,
-    getUserbyId:  getUserbyId,
-    createOrUpdateUser: createOrUpdateUser
+    insertMessage ,
+    getDistinctTags ,
+    getMessageTSbyTag ,
+    getLatestMessageForTicket,
+    getUserbyId ,
+    createOrUpdateUser ,
+    setHasReply ,
+    setSendAlert
 }

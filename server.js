@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 //set env to PROD
-process.env.NODE_ENV = "production";
+// process.env.NODE_ENV = "production";
 
 const express = require('express');
 const app = express();
@@ -13,7 +13,10 @@ var io = require('socket.io')(http);
 const apiRouter = require("./controllers/apiRoutes");
 // const htmlRouter = require("./controllers/htmlRoutes");
 var db = require("./models");
-//const routes = require("./routes");
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
+const {setSendAlert} = require('./controllers/Util/databaseUtils');
+const {sentAlertToChannel} = require('./controllers/Util/slackapi-int');
 
 
 app.use(bodyParser.json());
@@ -80,5 +83,21 @@ io.on('connection', (socket) =>{
     })
 })
 
-// console.log("io",io)
+
+
+const timer =  setInterval(() => {
+    const epochMinAgo = (Date.now() - 60000 * 25).toString();//25 min ago
+    db.Message.findAll({where:{
+        message_ts:{[Op.lt]:epochMinAgo},
+        has_reply:false,
+        alerted:false
+        }
+    }).then(messages=>{
+        messages.forEach(message=>{
+            sentAlertToChannel(message.message_ts.replace('.',''))
+            // setSendAlert(message.message_ts)
+        })
+    })
+}, 5*1000);//every 5 min
+
 module.exports = app;

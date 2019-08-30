@@ -16,7 +16,8 @@ const insertMessage = databaseUtils.insertMessage
     , retrieveUsernameFromUserID = slackapi.retrieveUsernameFromUserID
     , postMessageToThread = slackapi.postMessageToThread
     , getUserbyId = databaseUtils.getUserbyId
-    , createOrUpdateUser = databaseUtils.createOrUpdateUser;
+    , createOrUpdateUser = databaseUtils.createOrUpdateUser
+    ,setHasReply = databaseUtils.setHasReply;
 
 apiRouter.get('/tags', getTags);
 apiRouter.post('/events', saveEvents);
@@ -44,9 +45,17 @@ function saveEvents(req, res,io) {
         //DEV
         if (!process.env.NODE_ENV && data.event.channel == keys.channel && data.event.thread_ts === undefined && data.event.subtype === undefined) {
             post = data.event;
+            console.log(data)
+        }else if(!process.env.NODE_ENV && data.event.channel == keys.channel && data.event.thread_ts){
+            setHasReply(data.event.thread_ts);
         }
         //PROD
-        if (process.env.NODE_ENV === "production" && data.event.channel == keys.channel && data.event.subtype === undefined && data.event.attachments && data.event.attachments[0].footer === 'TigerBot') {
+        if(process.env.NODE_ENV === "production" && data.event.channel == keys.channel ){
+            // console.log(data)
+        }
+        if (process.env.NODE_ENV === "production" && data.event.channel == keys.channel 
+            && data.event.subtype === undefined && data.event.attachments 
+            && data.event.attachments[0].footer === 'TigerBot') {
             post = data.event.attachments[0];
             //not listening in tiger for testing 
             //not listening to anything other than new post/reply
@@ -63,6 +72,7 @@ function saveEvents(req, res,io) {
                 });
             }
             try {
+                console.log(data)
                 insertMessage(data.event.ts, data.event.user, tags, ticket, post.text).then((result)=>{
                     getOneUser(result.user, result.dataValues).then(resultsWithUser=>{
                         req.io.sockets.emit('message', resultsWithUser);

@@ -10,14 +10,14 @@ const socket = openSocket('http://localhost:3001');//TODO: use env variable here
 
 class App extends React.Component {
   state = {
-    showTags: false,//TODO:use hamberger menu
+    showTags: false,//TODO:use hamburger menu
     tags: [],
     selectedTags: [],
     messages: [],
     viewTicket: false,
     ticketThreads: [],
     ticketID: '',
-    newMessages:[]
+    newMessages:[]//[245,244,243]
   };
 
   addNewMessage = (newMessage) => {
@@ -65,6 +65,7 @@ class App extends React.Component {
     axios("/api/posts?tags=" + selectedTags + "&from=1522962323.00000")
       .then((res) => {
         res.data.sort((a, b) => { return Number(b.ts) - Number(a.ts) });
+        console.log(res.data)
         this.setState(state => ({
           messages: res.data
         }));
