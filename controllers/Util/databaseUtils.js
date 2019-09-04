@@ -85,9 +85,13 @@ function createOrUpdateUser(user_id,username=null,real_name=null){
 const setHasReply = (threadts) => {
     db.Message.findOne({where:{message_ts:threadts, has_reply:false}})
         .then(message=>{
-            return message.update({
-                has_reply:true
-            })
+            if(message){
+                return message.update({
+                    has_reply:true
+                })
+            }else{
+                throw("no message found: "+threadts);
+            }
         }).then(()=>{
             console.log("update to has reply:",threadts)
         }).catch(console.error)
@@ -99,9 +103,14 @@ const setSendAlert = (threadts) => {
             return message.update({
                 alerted:true
             })
-        }).then(()=>{
+        }).then(message=>{
+            console.log("alert ts:",message.alert_ts)
             console.log("update to alerted:",threadts)
         }).catch(console.error)
+}
+
+const getAlert = (threadts) =>{
+    return db.Message.findOne({where:{message_ts:threadts, alerted:true}})
 }
 
 module.exports={
@@ -112,5 +121,6 @@ module.exports={
     getUserbyId ,
     createOrUpdateUser ,
     setHasReply ,
-    setSendAlert
+    setSendAlert ,
+    getAlert
 }

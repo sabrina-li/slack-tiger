@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 //set env to PROD
-// process.env.NODE_ENV = "production";
+process.env.NODE_ENV = "production";
 
 const express = require('express');
 const app = express();
@@ -95,7 +95,7 @@ const timer =  setInterval(() => {
     }).then(messages=>{
         messages.forEach(message=>{
             sentAlertToChannel(message.message_ts.replace('.',''))
-            // setSendAlert(message.message_ts)
+            setSendAlert(message.message_ts)
         })
     })
 }, 5*1000);//every 5 min

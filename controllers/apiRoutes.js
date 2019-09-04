@@ -17,7 +17,9 @@ const insertMessage = databaseUtils.insertMessage
     , postMessageToThread = slackapi.postMessageToThread
     , getUserbyId = databaseUtils.getUserbyId
     , createOrUpdateUser = databaseUtils.createOrUpdateUser
-    ,setHasReply = databaseUtils.setHasReply;
+    , setHasReply = databaseUtils.setHasReply
+    , getAlert = databaseUtils.getAlert
+    , deleteAlert = slackapi.deleteAlert;
 
 apiRouter.get('/tags', getTags);
 apiRouter.post('/events', saveEvents);
@@ -45,13 +47,18 @@ function saveEvents(req, res,io) {
         //DEV
         if (!process.env.NODE_ENV && data.event.channel == keys.channel && data.event.thread_ts === undefined && data.event.subtype === undefined) {
             post = data.event;
-            console.log(data)
         }else if(!process.env.NODE_ENV && data.event.channel == keys.channel && data.event.thread_ts){
+            console.log(data.event);
             setHasReply(data.event.thread_ts);
+            deleteAlert(data.event.thread_ts);
         }
         //PROD
-        if(process.env.NODE_ENV === "production" && data.event.channel == keys.channel ){
-            // console.log(data)
+        if(process.env.NODE_ENV === "production" && data.event.channel == keys.channel 
+            && data.event.bot_id !== 'B60JCMYBD'// not from suppourt bot
+            && data.event.parent_user_id !== data.event.user){//not from user him/herself
+                setHasReply(data.event.thread_ts);
+                const alertTS = getAlert(data.event.thread_ts);
+                deleteAlert(alertTS);
         }
         if (process.env.NODE_ENV === "production" && data.event.channel == keys.channel 
             && data.event.subtype === undefined && data.event.attachments 
@@ -72,7 +79,6 @@ function saveEvents(req, res,io) {
                 });
             }
             try {
-                console.log(data)
                 insertMessage(data.event.ts, data.event.user, tags, ticket, post.text).then((result)=>{
                     getOneUser(result.user, result.dataValues).then(resultsWithUser=>{
                         req.io.sockets.emit('message', resultsWithUser);
