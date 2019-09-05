@@ -22,6 +22,9 @@ module.exports = function(sequelize, DataTypes) {
             type:DataTypes.BOOLEAN,
             defaultValue:false
         },
+        alert_ts:{
+            type:DataTypes.STRING
+        },
         message_preview: {
             type: DataTypes.TEXT
         }

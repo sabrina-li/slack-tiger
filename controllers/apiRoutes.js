@@ -19,7 +19,7 @@ const insertMessage = databaseUtils.insertMessage
     , createOrUpdateUser = databaseUtils.createOrUpdateUser
     , setHasReply = databaseUtils.setHasReply
     , getAlert = databaseUtils.getAlert
-    , deleteAlert = slackapi.deleteAlert;
+    , updateAlert = slackapi.updateAlert;
 
 apiRouter.get('/tags', getTags);
 apiRouter.post('/events', saveEvents);
@@ -48,17 +48,21 @@ function saveEvents(req, res,io) {
         if (!process.env.NODE_ENV && data.event.channel == keys.channel && data.event.thread_ts === undefined && data.event.subtype === undefined) {
             post = data.event;
         }else if(!process.env.NODE_ENV && data.event.channel == keys.channel && data.event.thread_ts){
-            console.log(data.event);
             setHasReply(data.event.thread_ts);
-            deleteAlert(data.event.thread_ts);
+            updateAlert(data.event.thread_ts);
         }
         //PROD
         if(process.env.NODE_ENV === "production" && data.event.channel == keys.channel 
+            && data.event.thread_ts
             && data.event.bot_id !== 'B60JCMYBD'// not from suppourt bot
             && data.event.parent_user_id !== data.event.user){//not from user him/herself
                 setHasReply(data.event.thread_ts);
-                const alertTS = getAlert(data.event.thread_ts);
-                deleteAlert(alertTS);
+                getAlert(data.event.thread_ts).then(message=>{
+                    if(message && message.alert_ts){
+                        updateAlert(message.alert_ts);
+                    }
+                });
+                
         }
         if (process.env.NODE_ENV === "production" && data.event.channel == keys.channel 
             && data.event.subtype === undefined && data.event.attachments 
@@ -253,7 +257,6 @@ function getOneUser(userID,message) {
             message.userInfo ={username:message.username,real_name:message.username}
             res(message);
         }
-        console.log("here",userID)
         getUserbyId(userID).then(user=>{
             if(user && user.length>0){
                 message.userInfo = user;
@@ -276,7 +279,6 @@ function postToThread(req, res) {
     const message = req.body.message;
     const thread_ts = req.body.thread_ts;
     postMessageToThread(message, thread_ts).then(response => {
-        console.log("posttothread",response.message.user);
         getOneUser(response.message.user,response.message).then(responseWithUser=>{
             res.set({
                 'Access-Control-Allow-Origin': '*',

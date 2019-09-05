@@ -83,6 +83,7 @@ function createOrUpdateUser(user_id,username=null,real_name=null){
 }
 
 const setHasReply = (threadts) => {
+    console.log("setHasReply",threadts)
     db.Message.findOne({where:{message_ts:threadts, has_reply:false}})
         .then(message=>{
             if(message){
@@ -97,11 +98,13 @@ const setHasReply = (threadts) => {
         }).catch(console.error)
 }
 
-const setSendAlert = (threadts) => {
+const setSendAlert = (threadts,alertts) => {
+    console.log(alertts)
     db.Message.findOne({where:{message_ts:threadts, alerted:false}})
         .then(message=>{
             return message.update({
-                alerted:true
+                alerted:true,
+                alert_ts:alertts
             })
         }).then(message=>{
             console.log("alert ts:",message.alert_ts)
@@ -110,6 +113,7 @@ const setSendAlert = (threadts) => {
 }
 
 const getAlert = (threadts) =>{
+    console.log("getalert",threadts)
     return db.Message.findOne({where:{message_ts:threadts, alerted:true}})
 }
 

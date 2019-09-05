@@ -1,7 +1,6 @@
 const request = require('request-promise-native');
 const secrets = require('../../config/secrets.js');
 
-
 const threadurl = "https://slack.com/api/channels.replies?token=" + secrets.keys.token
     + "&channel=" + secrets.keys.channel
     + "&thread_ts=";
@@ -9,9 +8,10 @@ const userurl = "https://slack.com/api/users.info?token=" + secrets.keys.token
     + "&user=";
 const postMessageurl = "https://slack.com/api/chat.postMessage?as_user=true&token=" + secrets.keys.token
     + "&channel=" + secrets.keys.channel;
-const postChannelurl = "https://slack.com/api/chat.postMessage?as_user=true&token=" + secrets.keys.token
+const alertChannelurl = "https://slack.com/api/chat.postMessage?token=" + secrets.keys.token
     + "&channel=" + secrets.keys.slachannel;
 const thread = 'https://vmware.slack.com/archives/' + secrets.keys.channel + '/p';
+const deleteURL = "https://slack.com/api/chat.delete?token="+secrets.keys.token+"&channel="+secrets.keys.slachannel+"&ts="
 
 
 
@@ -83,20 +83,14 @@ function postMessageToThread(message, thread_ts) {
     })
 }
 
-const sentAlertToChannel = (messageTS) => {
+const sentAlertToChannel = (messageTS,tags) => {
     return new Promise((res, rej) => {
-        const message = "The following thread is about to reach 30 min without reply:" + thread + messageTS;
-        request.post(postChannelurl + '&text=' + message)
+        const message = `The following thread is about to reach 30 min without reply: ${tags} ${thread}${messageTS}`;
+        request.post(alertChannelurl + '&text=' + message)
             .then(function (result) {
                 result = JSON.parse(result);
                 if (result && result.ok && result.message) {
-                    console.log("result",result)
-                    // db.Message.findOne({where:{message_ts:threadts, alerted:true}})
-                    // .then(message=>{
-                    //     if(message.alert_ts){
-                    //         console.log(alert_ts)
-                    //     }
-                    // }).catch(console.error)
+                    console.log("result",result.ts)
                     res(result);
                 } else {
                     console.log("ERR", result)
@@ -110,20 +104,51 @@ const sentAlertToChannel = (messageTS) => {
     })
 }
 
-const deleteAlert = (threadts)=>{
-    // db.Message.findOne({where:{message_ts:threadts, alerted:true}})
-    //     .then(message=>{
-    //         if(message.alert_ts){
-    //             console.log(alert_ts)
-    //         }
-            
-    //     }).catch(console.error)
+
+const updateAlert = (threadts)=>{
+    return new Promise((res, rej) => {
+        console.log(alertChannelurl + '&thread_ts=' + threadts + '&text=' + "someone replied to this one already! Thank you!")
+        request.post(alertChannelurl + '&thread_ts=' + threadts + '&text=' + "someone replied to this one already! Thank you!")
+            .then(function (result) {
+                result = JSON.parse(result);
+                if (result && result.ok && result.message.thread_ts) {
+                    res(result);
+                } else {
+                    console.log("ERR", result)
+                    rej("error posting to thread");
+                }
+            })
+            .catch(function (err) {
+                // failed...
+                rej(err);
+            });
+    })
+    // console.log(deleteURL + threadts);
+//     return new Promise((res, rej) => {
+//         request.post(deleteURL + threadts)
+//             .then(function (result) {
+//                 result = JSON.parse(result);
+//                 if (result && result.ok && result.message) {
+//                     console.log("result",result)
+//                     res(result);
+//                 } else {
+//                     console.log("ERR", result)
+//                     rej("error posting to thread");
+//                 }
+//             })
+//             .catch(function (err) {
+//                 // failed...
+//                 rej(err);
+//             });
+//     })
+// }
 }
+
 
 module.exports = {
     retrieveThreadsFromSlackAPI,
     retrieveUsernameFromUserID,
     postMessageToThread,
     sentAlertToChannel,
-    deleteAlert
+    updateAlert
 }

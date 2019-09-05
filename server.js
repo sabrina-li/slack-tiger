@@ -94,8 +94,11 @@ const timer =  setInterval(() => {
         }
     }).then(messages=>{
         messages.forEach(message=>{
-            sentAlertToChannel(message.message_ts.replace('.',''))
-            setSendAlert(message.message_ts)
+            sentAlertToChannel(message.message_ts.replace('.',''),message.tags).then(alert=>{
+                console.log("alert",alert.ts)
+                setSendAlert(message.message_ts,alert.ts)
+            })
+            
         })
     })
 }, 5*1000);//every 5 min
