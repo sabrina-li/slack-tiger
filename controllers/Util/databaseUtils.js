@@ -83,7 +83,7 @@ function createOrUpdateUser(user_id,username=null,real_name=null){
 }
 
 const setHasReply = (threadts) => {
-    console.log("setHasReply",threadts)
+    //console.log("setHasReply",threadts)
     db.Message.findOne({where:{message_ts:threadts, has_reply:false}})
         .then(message=>{
             if(message){
@@ -99,7 +99,7 @@ const setHasReply = (threadts) => {
 }
 
 const setSendAlert = (threadts,alertts) => {
-    console.log(alertts)
+    //console.log(alertts)
     db.Message.findOne({where:{message_ts:threadts, alerted:false}})
         .then(message=>{
             return message.update({
@@ -107,14 +107,18 @@ const setSendAlert = (threadts,alertts) => {
                 alert_ts:alertts
             })
         }).then(message=>{
-            console.log("alert ts:",message.alert_ts)
+            //console.log("alert ts:",message.alert_ts)
             console.log("update to alerted:",threadts)
         }).catch(console.error)
 }
 
 const getAlert = (threadts) =>{
-    console.log("getalert",threadts)
+    //console.log("getalert",threadts)
     return db.Message.findOne({where:{message_ts:threadts, alerted:true}})
+}
+
+const removeThread = (threadts) => {
+	return db.Message.destroy({where:{message_ts:threadts}});
 }
 
 module.exports={
@@ -126,5 +130,6 @@ module.exports={
     createOrUpdateUser ,
     setHasReply ,
     setSendAlert ,
-    getAlert
+    getAlert,
+	removeThread
 }

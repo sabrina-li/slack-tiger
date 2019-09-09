@@ -15,7 +15,7 @@ const apiRouter = require("./controllers/apiRoutes");
 var db = require("./models");
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
-const {setSendAlert} = require('./controllers/Util/databaseUtils');
+const {setSendAlert,removeThread} = require('./controllers/Util/databaseUtils');
 const {sentAlertToChannel} = require('./controllers/Util/slackapi-int');
 
 
@@ -93,14 +93,20 @@ const timer =  setInterval(() => {
         alerted:false
         }
     }).then(messages=>{
+		console.log("interval here and found messages: ", messages.length)
         messages.forEach(message=>{
             sentAlertToChannel(message.message_ts.replace('.',''),message.tags).then(alert=>{
                 console.log("alert",alert.ts)
                 setSendAlert(message.message_ts,alert.ts)
-            })
+            }).catch(err=>{
+				console.log(err)
+				if (err.err === "no thread found"){
+					removeThread(err.ts).catch(console.log);
+				}
+			})
             
         })
     })
-}, 5*1000);//every 5 min
+}, 5*1000*60);//every 5 min
 
 module.exports = app;

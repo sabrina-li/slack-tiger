@@ -19,7 +19,8 @@ const insertMessage = databaseUtils.insertMessage
     , createOrUpdateUser = databaseUtils.createOrUpdateUser
     , setHasReply = databaseUtils.setHasReply
     , getAlert = databaseUtils.getAlert
-    , updateAlert = slackapi.updateAlert;
+    , updateAlert = slackapi.updateAlert
+	, removeThread = databaseUtils.removeThread;
 
 apiRouter.get('/tags', getTags);
 apiRouter.post('/events', saveEvents);
@@ -40,9 +41,10 @@ function saveEvents(req, res,io) {
 
     //TODO subtype message changed
     //TODO logging
-    if (data.challenge) {
+	if (data.challenge) {
         res.send(data.challenge)
     } else {
+		console.log("event subtype: ",data.event.subtype)
         let post;
         //DEV
         if (!process.env.NODE_ENV && data.event.channel == keys.channel && data.event.thread_ts === undefined && data.event.subtype === undefined) {
@@ -56,13 +58,12 @@ function saveEvents(req, res,io) {
             && data.event.thread_ts
             && data.event.bot_id !== 'B60JCMYBD'// not from suppourt bot
             && data.event.parent_user_id !== data.event.user){//not from user him/herself
-                setHasReply(data.event.thread_ts);
                 getAlert(data.event.thread_ts).then(message=>{
-                    if(message && message.alert_ts){
+                    if(message && message.alert_ts && !message.has_reply){
                         updateAlert(message.alert_ts);
                     }
+					setHasReply(data.event.thread_ts);
                 });
-                
         }
         if (process.env.NODE_ENV === "production" && data.event.channel == keys.channel 
             && data.event.subtype === undefined && data.event.attachments 
@@ -71,6 +72,15 @@ function saveEvents(req, res,io) {
             //not listening in tiger for testing 
             //not listening to anything other than new post/reply
         }
+		if (process.env.NODE_ENV === "production" && data.event.channel == keys.channel 
+            && data.event.subtype === "message_deleted"
+			&& data.event.previous_message && data.event.previous_message.thread_ts
+			&& data.event.deleted_ts === data.event.previous_message.thread_ts){
+			console.log("message deleted:")
+			console.log(data.event)
+			console.log(data.event.previous_message.thread_ts);
+			removeThread(data.event.previous_message.thread_ts);
+		}
         if(post && post.text && post.text.split('-').length>1){
             rawTags = post.text.split('-')[0].trim().split(' ');
             ticket = post.text.split(' - ')[1].trim();
@@ -83,6 +93,7 @@ function saveEvents(req, res,io) {
                 });
             }
             try {
+				console.log("inserting message",data.event)
                 insertMessage(data.event.ts, data.event.user, tags, ticket, post.text).then((result)=>{
                     getOneUser(result.user, result.dataValues).then(resultsWithUser=>{
                         req.io.sockets.emit('message', resultsWithUser);

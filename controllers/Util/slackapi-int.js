@@ -65,7 +65,7 @@ function retrieveUsernameFromUserID(userID, message) {
 
 function postMessageToThread(message, thread_ts) {
     return new Promise((res, rej) => {
-        console.log(postMessageurl + '&thread_ts=' + thread_ts + '&text=' + message)
+        //console.log(postMessageurl + '&thread_ts=' + thread_ts + '&text=' + message)
         request.post(postMessageurl + '&thread_ts=' + thread_ts + '&text=' + message)
             .then(function (result) {
                 result = JSON.parse(result);
@@ -84,31 +84,50 @@ function postMessageToThread(message, thread_ts) {
 }
 
 const sentAlertToChannel = (messageTS,tags) => {
+	messageTS = messageTS.substring(0, messageTS.length - 6) + "." + messageTS.substring(messageTS.length - 6);;
     return new Promise((res, rej) => {
-        const message = `The following thread is about to reach 30 min without reply: ${tags} ${thread}${messageTS}`;
-        request.post(alertChannelurl + '&text=' + message)
+        request(threadurl + messageTS)
             .then(function (result) {
-                result = JSON.parse(result);
-                if (result && result.ok && result.message) {
-                    console.log("result",result.ts)
-                    res(result);
-                } else {
-                    console.log("ERR", result)
-                    rej("error posting to thread");
-                }
-            })
-            .catch(function (err) {
-                // failed...
-                rej(err);
-            });
+				console.log("sending alert to channel (get thread to make sure it's there");
+				console.log(result);
+				if (JSON.parse(result).ok){
+					console.log("ok")
+					const message = `The following thread is about to reach 30 min without reply: ${tags} ${thread}${messageTS.replace('.','')}`;
+					request.post(alertChannelurl + '&text=' + message)
+						.then(function (result) {
+							result = JSON.parse(result);
+							if (result && result.ok && result.message) {
+								//console.log("result",result.ts)
+								res(result);
+							} else {
+								console.log("ERR", result)
+								rej("error posting to thread");
+							}
+						})
+						.catch(function (err) {
+							// failed...
+							rej(err);
+						});
+				}else{
+					//delete the thread from DB
+					
+					rej({err:"no thread found",ts:messageTS})
+				}
+            
+            }).catch(function (err) {
+							// failed...
+							rej(err);
+						});
+
+		
+		
     })
 }
 
 
 const updateAlert = (threadts)=>{
     return new Promise((res, rej) => {
-        console.log(alertChannelurl + '&thread_ts=' + threadts + '&text=' + "someone replied to this one already! Thank you!")
-        request.post(alertChannelurl + '&thread_ts=' + threadts + '&text=' + "someone replied to this one already! Thank you!")
+		request.post(alertChannelurl + '&thread_ts=' + threadts + '&text=' + "someone replied to this one already! Thank you!")
             .then(function (result) {
                 result = JSON.parse(result);
                 if (result && result.ok && result.message.thread_ts) {
