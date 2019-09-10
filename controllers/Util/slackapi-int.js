@@ -83,16 +83,21 @@ function postMessageToThread(message, thread_ts) {
     })
 }
 
+
+
+                            
+
+
 const sentAlertToChannel = (messageTS,tags,alertTime) => {
+    messageTS = messageTS.substring(0, messageTS.length - 6) + "." + messageTS.substring(messageTS.length - 6);
+    const message = `The following thread is about to reach *${alertTime} min* without reply: *${tags}* ${thread}${messageTS}`;
+
     return new Promise((res, rej) => {
-        const message = `The following thread is about to reach *${alertTime} min* without reply: *${tags}* ${thread}${messageTS}`;
-        request.post(alertChannelurl + '&text=' + message)
+        request(threadurl + messageTS)
             .then(function (result) {
 				console.log("sending alert to channel (get thread to make sure it's there");
 				console.log(result);
 				if (JSON.parse(result).ok){
-					console.log("ok")
-					const message = `The following thread is about to reach 30 min without reply: ${tags} ${thread}${messageTS.replace('.','')}`;
 					request.post(alertChannelurl + '&text=' + message)
 						.then(function (result) {
 							result = JSON.parse(result);
@@ -110,7 +115,6 @@ const sentAlertToChannel = (messageTS,tags,alertTime) => {
 						});
 				}else{
 					//delete the thread from DB
-					
 					rej({err:"no thread found",ts:messageTS})
 				}
             

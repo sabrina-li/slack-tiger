@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 //set env to PROD
-process.env.NODE_ENV = "production";
+// process.env.NODE_ENV = "production";
 
 const express = require('express');
 const app = express();
@@ -68,7 +68,7 @@ db.sequelize.sync(syncOptions).then(function () {
             user:"U1K8Z9AFX",
             message_preview: "$MEM - 1521981 -  According to the product announcement, customers need to update their CNS cert. My customer is still using ENS V1. Here is the article in question: <https://support.workspaceone.com/articles/360023017973>.The customer used the download link for CNS from this article: <https://docs.vmware.com/en/VMware-Workspace-ONE-UEM/1810/WS1-Email-Notification-Service-2/GUID-7A3F2118-DF57-4E50-8BF2-93C18919092A.html>. Does the customer need to go to the Email &gt; Email Settings Page in the UEM Console, and clear out / regenerate the CNS here as well? If so, where does this step fit in the flow? No documents regarding CNS I’ve seen in a while even mention this location."
         },{
-            message_ts: "1559594472.002400",
+            message_ts: "1559594472.002404",
             tags: "$MAM",
             ticket_no: 1521981,
             user:"U1K8Z9AFP",
@@ -106,6 +106,8 @@ const timer1 =  setInterval(() => {
         alert15_ts:null
         }
     }).then(messages=>{
+
+        console.log("interval 1 and found messages: ", messages.length)
         messages.forEach(message=>{
             sentAlertToChannel(message.message_ts.replace('.',''),message.tags,10).then(alert=>{
                 setSendAlert(message.message_ts,alert.ts,1).then(()=>{
@@ -121,22 +123,28 @@ const timer1 =  setInterval(() => {
                     })
                 })
                 
+            }).catch(err=>{
+                console.log(err)
+                if (err.err === "no thread found"){
+                    removeThread(err.ts).catch(console.log);
+                }
             })
             
         })
     })
-}, 60*1000*10);//every 10 min
+}, 1000*10);//every 10 min
 
 
-//second alert
+//third alert
 const timer2 =  setInterval(() => {
-    const epochMinAgo = (Date.now() - 60000 * 25).toString();//>25 min ago
+    const epochMinAgo = (Date.now() - 60000 * 30).toString();//>30 min ago
     db.Message.findAll({where:{
         message_ts:{[Op.lt]:epochMinAgo},
         has_reply:false,
         alert30_ts:null
         }
     }).then(messages=>{
+        console.log("interval 2 and found messages: ", messages.length)
         messages.forEach(message=>{
             sentAlertToChannel(message.message_ts.replace('.',''),message.tags,30).then(alert=>{
                 setSendAlert(message.message_ts,alert.ts,2).then(()=>{
@@ -151,14 +159,19 @@ const timer2 =  setInterval(() => {
                     })
                 });
                 
+            }).catch(err=>{
+                console.log(err)
+                if (err.err === "no thread found"){
+                    removeThread(err.ts).catch(console.log);
+                }
             })
             
         })
     })
-}, 60*1000*30);//every 30 min
+}, 1000*30);//every 30 min
 
 
-//second alert
+//third alert
 const timer3 =  setInterval(() => {
     const epochMinAgo = (Date.now() - 60000 * 35).toString();//>35 min ago
     db.Message.findAll({where:{
@@ -167,7 +180,7 @@ const timer3 =  setInterval(() => {
         alert35_ts:null
         }
     }).then(messages=>{
-		console.log("interval here and found messages: ", messages.length)
+		console.log("interval 3 and found messages: ", messages.length)
         messages.forEach(message=>{
             sentAlertToChannel(message.message_ts.replace('.',''),message.tags,35).then(alert=>{
                 setSendAlert(message.message_ts,alert.ts,3).then(()=>{
@@ -182,11 +195,16 @@ const timer3 =  setInterval(() => {
                     })
                 });
                 
+            }).catch(err=>{
+                console.log(err)
+                if (err.err === "no thread found"){
+                    removeThread(err.ts).catch(console.log);
+                }
             })
             
         })
     })
-}, 60*1000*35);//every 35 min
+}, 1000*35);//every 35 min
 
 
 setTimeout(() => {
