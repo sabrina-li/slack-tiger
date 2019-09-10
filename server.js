@@ -95,16 +95,17 @@ io.on('connection', (socket) =>{
 })
 
 
-//first alert
+
 const timer1 =  setInterval(() => {
-    const epochMinAgo = (Date.now() - 60000 * 10).toString();//>10 min ago
+
+//first alert
+    const epochMinAgo10= (Date.now() - 60000 * 10).toString();//>10 min ago
     db.Message.findAll({where:{
-        message_ts:{[Op.lt]:epochMinAgo},
+        message_ts:{[Op.lt]:epochMinAgo10},
         has_reply:false,
         alert15_ts:null
         }
     }).then(messages=>{
-
         console.log("interval 1 and found messages: ", messages.length)
         messages.forEach(message=>{
             sentAlertToChannel(message.message_ts.replace('.',''),message.tags,10).then(alert=>{
@@ -130,14 +131,12 @@ const timer1 =  setInterval(() => {
             
         })
     })
-}, 60*1000*10);//every 10 min
 
 
-//third alert
-const timer2 =  setInterval(() => {
-    const epochMinAgo = (Date.now() - 60000 * 30).toString();//>30 min ago
+//second alert
+    const epochMinAgo30 = (Date.now() - 60000 * 30).toString();//>30 min ago
     db.Message.findAll({where:{
-        message_ts:{[Op.lt]:epochMinAgo},
+        message_ts:{[Op.lt]:epochMinAgo30},
         has_reply:false,
         alert30_ts:null
         }
@@ -166,14 +165,12 @@ const timer2 =  setInterval(() => {
             
         })
     })
-}, 60*1000*30);//every 30 min
 
 
 //third alert
-const timer3 =  setInterval(() => {
-    const epochMinAgo = (Date.now() - 60000 * 35).toString();//>35 min ago
+    const epochMinAgo35 = (Date.now() - 60000 * 35).toString();//>35 min ago
     db.Message.findAll({where:{
-        message_ts:{[Op.lt]:epochMinAgo},
+        message_ts:{[Op.lt]:epochMinAgo35},
         has_reply:false,
         alert35_ts:null
         }
@@ -202,7 +199,8 @@ const timer3 =  setInterval(() => {
             
         })
     })
-}, 60*1000*35);//every 35 min
+}, 60*1000*5);//every 5 min
+
 
 
 module.exports = app;
