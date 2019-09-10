@@ -83,10 +83,10 @@ function postMessageToThread(message, thread_ts) {
     })
 }
 
-const sentAlertToChannel = (messageTS,tags) => {
-	messageTS = messageTS.substring(0, messageTS.length - 6) + "." + messageTS.substring(messageTS.length - 6);;
+const sentAlertToChannel = (messageTS,tags,alertTime) => {
     return new Promise((res, rej) => {
-        request(threadurl + messageTS)
+        const message = `The following thread is about to reach *${alertTime} min* without reply: *${tags}* ${thread}${messageTS}`;
+        request.post(alertChannelurl + '&text=' + message)
             .then(function (result) {
 				console.log("sending alert to channel (get thread to make sure it's there");
 				console.log(result);

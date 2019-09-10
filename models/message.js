@@ -18,11 +18,17 @@ module.exports = function(sequelize, DataTypes) {
             type:DataTypes.BOOLEAN,
             defaultValue:false
         },
-        alerted:{
-            type:DataTypes.BOOLEAN,
-            defaultValue:false
+        alert_cnt:{
+            type:DataTypes.INTEGER,
+            defaultValue:0
         },
-        alert_ts:{
+        alert15_ts:{
+            type:DataTypes.STRING
+        },
+        alert30_ts:{
+            type:DataTypes.STRING
+        },
+        alert35_ts:{
             type:DataTypes.STRING
         },
         message_preview: {

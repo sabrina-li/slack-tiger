@@ -83,38 +83,32 @@ function createOrUpdateUser(user_id,username=null,real_name=null){
 }
 
 const setHasReply = (threadts) => {
-    //console.log("setHasReply",threadts)
-    db.Message.findOne({where:{message_ts:threadts, has_reply:false}})
-        .then(message=>{
-            if(message){
-                return message.update({
-                    has_reply:true
-                })
-            }else{
-                throw("no message found: "+threadts);
-            }
-        }).then(()=>{
-            console.log("update to has reply:",threadts)
-        }).catch(console.error)
+    return  db.Message.update({
+                has_reply:true
+            },{where:{message_ts:threadts, has_reply:false}})
 }
 
-const setSendAlert = (threadts,alertts) => {
-    //console.log(alertts)
-    db.Message.findOne({where:{message_ts:threadts, alerted:false}})
-        .then(message=>{
-            return message.update({
-                alerted:true,
-                alert_ts:alertts
-            })
-        }).then(message=>{
-            //console.log("alert ts:",message.alert_ts)
-            console.log("update to alerted:",threadts)
-        }).catch(console.error)
+const setSendAlert = (thread_ts,alert_ts,alertNum) => {
+    //alertNum: num of alert(1,2,3 first second third alert)
+    const alertTime={
+        1:15,
+        2:30,
+        3:35
+    }//time based on DB
+    const alertCol = "alert"+alertTime[alertNum]+"_ts";
+    //if there is already has reply, then send update alert
+    
+    return db.Message.update({
+                [alertCol]:alert_ts,
+                alert_cnt:alertNum
+            },{
+                where:{message_ts:thread_ts, alert_cnt:alertNum-1}
+            });
 }
 
 const getAlert = (threadts) =>{
-    //console.log("getalert",threadts)
-    return db.Message.findOne({where:{message_ts:threadts, alerted:true}})
+    console.log("getalert",threadts)
+    return db.Message.findOne({where:{message_ts:threadts, alert_cnt:{[Op.gt]:0}}})
 }
 
 const removeThread = (threadts) => {

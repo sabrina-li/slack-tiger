@@ -51,16 +51,34 @@ function saveEvents(req, res,io) {
             post = data.event;
         }else if(!process.env.NODE_ENV && data.event.channel == keys.channel && data.event.thread_ts){
             setHasReply(data.event.thread_ts);
-            updateAlert(data.event.thread_ts);
+            getAlert(data.event.thread_ts).then(message=>{
+                if(message && message.alert15_ts){
+                    updateAlert(message.alert15_ts);//API: send reply to he alert thread once there's a reply
+                }
+                if(message && message.alert30_ts){
+                    updateAlert(message.alert30_ts);//API: send reply to he alert thread once there's a reply
+                }
+                if(message && message.alert35_ts){
+                    updateAlert(message.alert35_ts);//API: send reply to he alert thread once there's a reply
+                }
+            });
         }
         //PROD
         if(process.env.NODE_ENV === "production" && data.event.channel == keys.channel 
             && data.event.thread_ts
             && data.event.bot_id !== 'B60JCMYBD'// not from suppourt bot
             && data.event.parent_user_id !== data.event.user){//not from user him/herself
+                //has a new reply
+                setHasReply(data.event.thread_ts);
                 getAlert(data.event.thread_ts).then(message=>{
-                    if(message && message.alert_ts && !message.has_reply){
-                        updateAlert(message.alert_ts);
+                    if(message && message.alert15_ts){
+                        updateAlert(message.alert15_ts);//API: send reply to he alert thread once there's a reply
+                    }
+                    if(message && message.alert30_ts){
+                        updateAlert(message.alert30_ts);//API: send reply to he alert thread once there's a reply
+                    }
+                    if(message && message.alert35_ts){
+                        updateAlert(message.alert35_ts);//API: send reply to he alert thread once there's a reply
                     }
 					setHasReply(data.event.thread_ts);
                 });
