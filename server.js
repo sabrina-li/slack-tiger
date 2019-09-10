@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 //set env to PROD
-// process.env.NODE_ENV = "production";
+process.env.NODE_ENV = "production";
 
 const express = require('express');
 const app = express();
@@ -47,7 +47,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const PORT = process.env.PORT || 3001;
-var syncOptions = { force: false };
+var syncOptions = { force: true };
 
 // If running a test, set syncOptions.force to true
 // clearing the `testdb` nad `developmentdb`
@@ -132,7 +132,7 @@ const timer1 =  setInterval(() => {
             
         })
     })
-}, 1000*10);//every 10 min
+}, 60*1000*10);//every 10 min
 
 
 //third alert
@@ -168,7 +168,7 @@ const timer2 =  setInterval(() => {
             
         })
     })
-}, 1000*30);//every 30 min
+}, 60*1000*30);//every 30 min
 
 
 //third alert
@@ -204,12 +204,7 @@ const timer3 =  setInterval(() => {
             
         })
     })
-}, 1000*35);//every 35 min
-
-
-setTimeout(() => {
-    setHasReply("1568129139.010600")
-}, 1000*5);
+}, 60*1000*35);//every 35 min
 
 
 module.exports = app;
