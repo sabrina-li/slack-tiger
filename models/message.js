@@ -9,7 +9,7 @@ module.exports = function(sequelize, DataTypes) {
             allowNull: false
         },
         ticket_no: {
-            type: DataTypes.INTEGER
+            type: DataTypes.BIGINT
         },
         user: {
             type:DataTypes.STRING
