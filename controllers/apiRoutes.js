@@ -64,27 +64,30 @@ function saveEvents(req, res,io) {
             });
         }
         //PROD
+		console.log("reply",data.event)
         if(process.env.NODE_ENV === "production" && data.event.channel == keys.channel 
             && data.event.thread_ts
             && data.event.bot_id !== 'B60JCMYBD'// not from suppourt bot
             && data.event.parent_user_id !== data.event.user){//not from user him/herself
                 //has a new reply
-                setHasReply(data.event.thread_ts);
+				console.log("has reply",data.event.thread_ts)
+                
                 getAlert(data.event.thread_ts).then(message=>{
-                    if(message && message.alert15_ts){
+                    if(message && message.alert15_ts && !message.has_reply){
                         updateAlert(message.alert15_ts);//API: send reply to he alert thread once there's a reply
                     }
-                    if(message && message.alert30_ts){
+                    if(message && message.alert30_ts && !message.has_reply){
                         updateAlert(message.alert30_ts);//API: send reply to he alert thread once there's a reply
                     }
-                    if(message && message.alert35_ts){
+                    if(message && message.alert35_ts && !message.has_reply){
                         updateAlert(message.alert35_ts);//API: send reply to he alert thread once there's a reply
                     }
 					setHasReply(data.event.thread_ts);
                 });
+				setHasReply(data.event.thread_ts);
         }
         if (process.env.NODE_ENV === "production" && data.event.channel == keys.channel 
-            && data.event.subtype === undefined && data.event.attachments 
+            && data.event.subtype === undefined && data.event.attachments && data.event.text === ''
             && data.event.attachments[0].footer === 'TigerBot') {
             post = data.event.attachments[0];
             //not listening in tiger for testing 

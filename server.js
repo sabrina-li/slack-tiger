@@ -45,7 +45,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const PORT = process.env.PORT || 3001;
-var syncOptions = { force: true };
+var syncOptions = { force: false };
 
 // If running a test, set syncOptions.force to true
 // clearing the `testdb` nad `developmentdb`
@@ -199,7 +199,7 @@ const timer1 =  setInterval(() => {
             
         })
     })
-}, 60*1000*5);//every 5 min
+}, 60*1000);//every  min
 
 
 

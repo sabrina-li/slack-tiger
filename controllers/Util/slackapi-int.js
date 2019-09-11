@@ -90,7 +90,7 @@ function postMessageToThread(message, thread_ts) {
 
 const sentAlertToChannel = (messageTS,tags,alertTime) => {
     messageTS = messageTS.substring(0, messageTS.length - 6) + "." + messageTS.substring(messageTS.length - 6);
-    const message = `The following thread is reaching ${alertTime==35?":HIGH:":''}*${alertTime} min* without reply: *${tags}* ${thread}${messageTS}`;
+    const message = `The following thread is reaching ${alertTime==35?":exclamation:":''} *${alertTime} min* without reply: *${tags}* ${thread}${messageTS}`;
 
     return new Promise((res, rej) => {
         request(threadurl + messageTS)

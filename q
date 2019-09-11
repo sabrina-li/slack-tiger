@@ -1,0 +1,87 @@
+[1mdiff --git a/controllers/Util/databaseUtils.js b/controllers/Util/databaseUtils.js[m
+[1mindex 815e624..05e5f15 100644[m
+[1m--- a/controllers/Util/databaseUtils.js[m
+[1m+++ b/controllers/Util/databaseUtils.js[m
+[36m@@ -83,6 +83,7 @@[m [mfunction createOrUpdateUser(user_id,username=null,real_name=null){[m
+ }[m
+ [m
+ const setHasReply = (threadts) => {[m
+[32m+[m	[32mconsole.log("sethasreply",threadts);[m
+     return  db.Message.update({[m
+                 has_reply:true[m
+             },{where:{message_ts:threadts, has_reply:false}})[m
+[1mdiff --git a/controllers/Util/slackapi-int.js b/controllers/Util/slackapi-int.js[m
+[1mindex a9d189b..2841515 100644[m
+[1m--- a/controllers/Util/slackapi-int.js[m
+[1m+++ b/controllers/Util/slackapi-int.js[m
+[36m@@ -90,7 +90,7 @@[m [mfunction postMessageToThread(message, thread_ts) {[m
+ [m
+ const sentAlertToChannel = (messageTS,tags,alertTime) => {[m
+     messageTS = messageTS.substring(0, messageTS.length - 6) + "." + messageTS.substring(messageTS.length - 6);[m
+[31m-    const message = `The following thread is reaching ${alertTime==35?":HIGH:":''}*${alertTime} min* without reply: *${tags}* ${thread}${messageTS}`;[m
+[32m+[m[32m    const message = `The following thread is reaching ${alertTime==35?":exclamation:":''} *${alertTime} min* without reply: *${tags}* ${thread}${messageTS}`;[m
+ [m
+     return new Promise((res, rej) => {[m
+         request(threadurl + messageTS)[m
+[1mdiff --git a/controllers/apiRoutes.js b/controllers/apiRoutes.js[m
+[1mindex 46839aa..ceb58fb 100644[m
+[1m--- a/controllers/apiRoutes.js[m
+[1m+++ b/controllers/apiRoutes.js[m
+[36m@@ -64,27 +64,30 @@[m [mfunction saveEvents(req, res,io) {[m
+             });[m
+         }[m
+         //PROD[m
+[32m+[m		[32mconsole.log("reply",data.event)[m
+         if(process.env.NODE_ENV === "production" && data.event.channel == keys.channel [m
+             && data.event.thread_ts[m
+             && data.event.bot_id !== 'B60JCMYBD'// not from suppourt bot[m
+             && data.event.parent_user_id !== data.event.user){//not from user him/herself[m
+                 //has a new reply[m
+[31m-                setHasReply(data.event.thread_ts);[m
+[32m+[m				[32mconsole.log("has reply",data.event.thread_ts)[m
+[32m+[m[41m                [m
+                 getAlert(data.event.thread_ts).then(message=>{[m
+[31m-                    if(message && message.alert15_ts){[m
+[32m+[m[32m                    if(message && message.alert15_ts && !message.has_reply){[m
+                         updateAlert(message.alert15_ts);//API: send reply to he alert thread once there's a reply[m
+                     }[m
+[31m-                    if(message && message.alert30_ts){[m
+[32m+[m[32m                    if(message && message.alert30_ts && !message.has_reply){[m
+                         updateAlert(message.alert30_ts);//API: send reply to he alert thread once there's a reply[m
+                     }[m
+[31m-                    if(message && message.alert35_ts){[m
+[32m+[m[32m                    if(message && message.alert35_ts && !message.has_reply){[m
+                         updateAlert(message.alert35_ts);//API: send reply to he alert thread once there's a reply[m
+                     }[m
+ 					setHasReply(data.event.thread_ts);[m
+                 });[m
+[32m+[m				[32msetHasReply(data.event.thread_ts);[m
+         }[m
+         if (process.env.NODE_ENV === "production" && data.event.channel == keys.channel [m
+[31m-            && data.event.subtype === undefined && data.event.attachments [m
+[32m+[m[32m            && data.event.subtype === undefined && data.event.attachments && data.event.text === ''[m
+             && data.event.attachments[0].footer === 'TigerBot') {[m
+             post = data.event.attachments[0];[m
+             //not listening in tiger for testing [m
+[1mdiff --git a/server.js b/server.js[m
+[1mindex 02094ad..6c4b84c 100644[m
+[1m--- a/server.js[m
+[1m+++ b/server.js[m
+[36m@@ -45,7 +45,7 @@[m [mif (process.env.NODE_ENV === "production") {[m
+ }[m
+ [m
+ const PORT = process.env.PORT || 3001;[m
+[31m-var syncOptions = { force: true };[m
+[32m+[m[32mvar syncOptions = { force: false };[m
+ [m
+ // If running a test, set syncOptions.force to true[m
+ // clearing the `testdb` nad `developmentdb`[m
+[36m@@ -199,7 +199,7 @@[m [mconst timer1 =  setInterval(() => {[m
+             [m
+         })[m
+     })[m
+[31m-}, 60*1000*5);//every 5 min[m
+[32m+[m[32m}, 60*1000);//every  min[m
+ [m
+ [m
+ [m
