@@ -34,11 +34,8 @@ apiRouter.get('/user/:userID',getUser);
 // used for event listener, to save incoming events to DB
 // POST /events
 function saveEvents(req, res,io) {
-    // console.log(req.body)
     const data = req.body;
     let tags = [], repost = [], rawtags, thread_ts;
-    // req.io.sockets.emit('message', "second!");
-
     //TODO subtype message changed
     //TODO logging
 	if (data.challenge) {
@@ -46,6 +43,7 @@ function saveEvents(req, res,io) {
     } else {
 		console.log("event subtype: ",data.event.subtype)
         let post;
+
         //DEV
         if (!process.env.NODE_ENV && data.event.channel == keys.channel && data.event.thread_ts === undefined && data.event.subtype === undefined) {
             post = data.event;
@@ -64,14 +62,11 @@ function saveEvents(req, res,io) {
             });
         }
         //PROD
-		console.log("reply",data.event)
         if(process.env.NODE_ENV === "production" && data.event.channel == keys.channel 
             && data.event.thread_ts
             && data.event.bot_id !== 'B60JCMYBD'// not from suppourt bot
             && data.event.parent_user_id !== data.event.user){//not from user him/herself
                 //has a new reply
-				console.log("has reply",data.event.thread_ts)
-                
                 getAlert(data.event.thread_ts).then(message=>{
                     if(message && message.alert15_ts && !message.has_reply){
                         updateAlert(message.alert15_ts);//API: send reply to he alert thread once there's a reply
@@ -101,16 +96,15 @@ function saveEvents(req, res,io) {
 			console.log(data.event)
 			console.log(data.event.previous_message.thread_ts);
 			removeThread(data.event.previous_message.thread_ts);
-		}
+        }
         if(post && post.text && post.text.split('-').length>1){
-            rawTags = post.text.split('-')[0].trim().split(' ');
+            rawTags = post.text.split('-')[0].trim().replace(/ /g,'').split('$');
             ticket = post.text.split(' - ')[1].trim();
             ticket = isNaN(parseInt(ticket)) ? null : parseInt(ticket);
-
             if (rawTags && rawTags.length > 0) {
                 rawTags.forEach(element => {
-                    if (element.startsWith("$")) tags.push(element);
-                    else if (element.startsWith("REPOST")) repost.push(element);
+                    if (element.startsWith("REPOST")) repost.push(element)
+                    else if(element) tags.push(element);
                 });
             }
             try {

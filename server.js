@@ -18,17 +18,10 @@ const Op = Sequelize.Op;
 const {setSendAlert,removeThread} = require('./controllers/Util/databaseUtils');
 const {sentAlertToChannel} = require('./controllers/Util/slackapi-int');
 
-
-
-const databaseUtils = require('./controllers/Util/databaseUtils');
 const slackapi = require('./controllers/Util/slackapi-int');
-
 
 //TODO: object decontruction
 const updateAlert = slackapi.updateAlert;
-
-
-
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
