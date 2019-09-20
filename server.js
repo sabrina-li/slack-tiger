@@ -224,9 +224,12 @@ db.Message.findAll({where:{
             }
             const ts = messageWithReplies[0].replies[1].ts;
             const threadts = messageWithReplies[0].thread_ts;
-            const check45 = Number(ts)-Number(threadts)
+            const check45 = Number(ts)-Number(threadts);
 
-            if (check45>2.7) {sentAlertToChannel(threadts.replace('.',''),tags,45)}
+            if (check45>2.7) {
+                //sentAlertToChannel(threadts.replace('.',''),tags,45)
+                 console.log("SHOULD SEND: "+messageWithReplies)
+            }
         }
 
         
