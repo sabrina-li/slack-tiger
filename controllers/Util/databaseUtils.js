@@ -83,7 +83,7 @@ function createOrUpdateUser(user_id,username=null,real_name=null){
 }
 
 const setHasReply = (threadts) => {
-	console.log("sethasreply",threadts);
+	//console.log("sethasreply",threadts);
     return  db.Message.update({
                 has_reply:true
             },{where:{message_ts:threadts, has_reply:false}})

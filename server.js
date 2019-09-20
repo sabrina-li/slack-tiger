@@ -202,7 +202,6 @@ db.Message.findAll({where:{
 }).then(messages=>{
     console.log("interval 4 and found messages: ", messages.length)
     messages.forEach(async message=>{
-        console.log(message.message_ts.replace('.',''),lastCheckedMessageTS)
         if(Number(message.message_ts.replace('.',''))>Number(lastCheckedMessageTS)){
             lastCheckedMessageTS = message.message_ts.replace('.','')
         }
@@ -213,23 +212,26 @@ db.Message.findAll({where:{
         //if no first reply then nothing
         //otherwise check if more than 45 min
         if(messageWithReplies[0] && messageWithReplies[0].replies ){
+			let ts,threadts = messageWithReplies[0].thread_ts;;
             for (let i=0;i<messageWithReplies[0].replies.length;i++){
                 if(messageWithReplies[0].replies[i].user == "B60JCMYBD"
                 || messageWithReplies[0].replies[i].user == messageWithReplies[0].user){
                     //not count
                 }else{
                     //check45
-                    break
+					ts = messageWithReplies[0].replies[i].ts;
+                    break;
                 }
             }
-            const ts = messageWithReplies[0].replies[1].ts;
-            const threadts = messageWithReplies[0].thread_ts;
-            const check45 = Number(ts)-Number(threadts);
+			if(ts && threadts){
+				const check45 = Number(ts)-Number(threadts);
 
-            if (check45>2.7) {
+            if (check45>2700) {
                 //sentAlertToChannel(threadts.replace('.',''),tags,45)
-                 console.log("SHOULD SEND: "+messageWithReplies)
+                 console.log("SHOULD SEND: ",ts,threadts,messageWithReplies[0].replies.toString())
             }
+			}
+            
         }
 
         

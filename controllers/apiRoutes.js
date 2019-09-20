@@ -41,7 +41,6 @@ function saveEvents(req, res,io) {
 	if (data.challenge) {
         res.send(data.challenge)
     } else {
-		console.log("event subtype: ",data.event.subtype)
         let post;
 
         //DEV
@@ -81,6 +80,11 @@ function saveEvents(req, res,io) {
                 });
 				setHasReply(data.event.thread_ts);
         }
+		
+		console.log("logging event: ",data.event.channel)
+		console.log("logging event: ",data.event.subtype)
+		console.log("logging event: ",data.event.text)
+		console.log(data.event.attachments?data.event.attachments[0]:'');
         if (process.env.NODE_ENV === "production" && data.event.channel == keys.channel 
             && data.event.subtype === undefined && data.event.attachments && data.event.text === ''
             && data.event.attachments[0].footer === 'TigerBot') {
