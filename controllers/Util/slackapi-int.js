@@ -90,8 +90,13 @@ function postMessageToThread(message, thread_ts) {
 
 const sentAlertToChannel = (messageTS,tags,alertTime) => {
     messageTS = messageTS.substring(0, messageTS.length - 6) + "." + messageTS.substring(messageTS.length - 6);
-    const message = `The following thread is reaching ${alertTime==35?":exclamation:":''} *${alertTime} min* without reply: *${tags}* ${thread}${messageTS}`;
-
+    let message;
+    if(alertTime == 45){
+        message = `:exclamation: The following thread has passed SLA without reply: *${tags}* ${thread}${messageTS}`;
+    }else{
+        message = `${alertTime==35?":warning: ":''}The following thread is reaching *${alertTime} min* without reply: *${tags}* ${thread}${messageTS}`;
+    }
+    
     return new Promise((res, rej) => {
         request(threadurl + messageTS)
             .then(function (result) {
