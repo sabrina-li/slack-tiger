@@ -209,7 +209,7 @@ db.Message.findAll({where:{
         // retrieveThreadsFromSlackAPI(message.message_ts)
         // retrieveThreadsFromSlackAPI("1568408737.002800").then(console.log)
         const tags = message.tags;
-        const messageWithReplies = await retrieveThreadsFromSlackAPI("1568408737.002800");
+        const messageWithReplies = await retrieveThreadsFromSlackAPI(message.message_ts);
         //if no first reply then nothing
         //otherwise check if more than 45 min
         if(messageWithReplies[0] && messageWithReplies[0].replies ){
@@ -233,7 +233,7 @@ db.Message.findAll({where:{
         
     })
 })
-}, 5*1000);//every min
+}, 2*60*1000);//every min
 
 
 
